@@ -1,8 +1,6 @@
 fastapi
-# pyiceberg
-# pip install git+https://github.com/apache/iceberg-python.git # install from latest source
-# install pyiceberg from vendor directory
-# pip install ./vendor/iceberg-python                                             
+# install pyiceberg from vendor directory. This contains temporary fixes
+./vendor/iceberg-python                                             
 sqlalchemy
 pyiceberg[pyarrow]
 pyiceberg[s3fs]
