@@ -1,8 +1,9 @@
 from typing import Any, Dict, Optional, Union
 
-from fastapi import Body, FastAPI, HTTPException, Path, Query
+from fastapi import Body, FastAPI, Path, Query, Request
 from pydantic import BaseModel, Field, StrictStr
 
+from models.exception import IcebergHTTPException
 from pyiceberg.table import TableIdentifier
 from pyiceberg.table.metadata import TableMetadata
 from pyiceberg.exceptions import (
@@ -36,6 +37,12 @@ from models.response import (
 )
 
 app = FastAPI()
+
+
+@app.exception_handler(IcebergHTTPException)
+async def iceberg_http_exception_handler(request: Request, exc: IcebergHTTPException):
+    return exc.to_json_response()
+
 
 from pyiceberg.catalog.sql import SqlCatalog
 
@@ -99,7 +106,7 @@ def create_namespace(
     try:
         catalog.create_namespace(namespace, properties)
     except NamespaceAlreadyExistsError:
-        raise HTTPException(
+        raise IcebergHTTPException(
             status_code=409, detail=f"Namespace already exists: {namespace}"
         )
     return CreateNamespaceResponse(namespace=namespace, properties=properties)
@@ -122,7 +129,7 @@ def list_namespaces(
     try:
         namespaces = catalog.list_namespaces(parent)
     except NoSuchNamespaceError:
-        raise HTTPException(
+        raise IcebergHTTPException(
             status_code=404, detail=f"Namespace does not exist: {parent}"
         )
     return ListNamespacesResponse(namespaces=namespaces)
@@ -146,7 +153,7 @@ def load_namespace_metadata(
     try:
         properties = catalog.load_namespace_properties(namespace=namespace_tuple)
     except NoSuchNamespaceError:
-        raise HTTPException(
+        raise IcebergHTTPException(
             status_code=404, detail=f"Namespace does not exist: {namespace_tuple}"
         )
     return GetNamespaceResponse(namespace=namespace_tuple, properties=properties)
@@ -168,11 +175,11 @@ def drop_namespace(
     try:
         catalog.drop_namespace(namespace_tuple)
     except NoSuchNamespaceError:
-        raise HTTPException(
+        raise IcebergHTTPException(
             status_code=404, detail=f"Namespace does not exist: {namespace_tuple}"
         )
     except NamespaceNotEmptyError:
-        raise HTTPException(
+        raise IcebergHTTPException(
             status_code=409, detail=f"Namespace is not empty: {namespace_tuple}"
         )
 
@@ -193,7 +200,7 @@ def namespace_exists(
     try:
         catalog.load_namespace_properties(namespace=namespace)
     except NoSuchNamespaceError:
-        raise HTTPException(
+        raise IcebergHTTPException(
             status_code=404, detail=f"Namespace does not exist: {namespace}"
         )
 
@@ -223,7 +230,7 @@ def update_namespace_properties(
             updates=update_namespace_properties_request.updates,
         )
     except NoSuchNamespaceError:
-        raise HTTPException(
+        raise IcebergHTTPException(
             status_code=404, detail=f"Namespace does not exist: {namespace_tuple}"
         )
     return UpdateNamespacePropertiesResponse(
@@ -250,7 +257,7 @@ def list_tables(
     try:
         identifiers = catalog.list_tables(namespace=namespace)
     except NoSuchNamespaceError:
-        raise HTTPException(
+        raise IcebergHTTPException(
             status_code=404, detail=f"Namespace does not exist: {namespace}"
         )
     table_identifiers = [
@@ -314,7 +321,7 @@ def _stage_create_table(
         # (TODO): temp fix, create/then remove table
         catalog.drop_table(identifier)
     except TableAlreadyExistsError:
-        raise HTTPException(
+        raise IcebergHTTPException(
             status_code=409, detail=f"Table already exists: {identifier}"
         )
     return LoadTableResult(
@@ -342,7 +349,7 @@ def _create_table(
             properties=create_table_request.properties,
         )
     except TableAlreadyExistsError:
-        raise HTTPException(
+        raise IcebergHTTPException(
             status_code=409, detail=f"Table already exists: {identifier}"
         )
     return LoadTableResult(
@@ -373,11 +380,11 @@ def register_table(
             metadata_location=register_table_request.metadata_location,
         )
     except NoSuchNamespaceError:
-        raise HTTPException(
+        raise IcebergHTTPException(
             status_code=404, detail=f"Namespace does not exist: {namespace}"
         )
     except TableAlreadyExistsError:
-        raise HTTPException(
+        raise IcebergHTTPException(
             status_code=409,
             detail=f"Table already exists: {(namespace, register_table_request.name)}",
         )
@@ -407,7 +414,7 @@ def load_table(
         identifier = (namespace, table)
         tbl = catalog.load_table(identifier=identifier)
     except NoSuchTableError:
-        raise HTTPException(
+        raise IcebergHTTPException(
             status_code=404, detail=f"Table does not exist: {identifier}"
         )
     return LoadTableResult(
@@ -439,11 +446,11 @@ def update_table(
             )
         resp = catalog._commit_table(commit_table_request)
     except NoSuchTableError:
-        raise HTTPException(
+        raise IcebergHTTPException(
             status_code=404, detail=f"Table does not exist: {(namespace, table)}"
         )
     except CommitFailedException as e:
-        raise HTTPException(
+        raise IcebergHTTPException(
             status_code=409, detail=f"Commit failed: {(namespace, table)}, Error: {e}"
         )
     return resp
@@ -466,7 +473,7 @@ def drop_table(
     try:
         catalog.drop_table(identifier=(namespace, table))
     except NoSuchTableError:
-        raise HTTPException(
+        raise IcebergHTTPException(
             status_code=404, detail=f"Table does not exist: {(namespace, table)}"
         )
 
@@ -488,7 +495,7 @@ def table_exists(
     try:
         catalog.load_table(identifier=(namespace, table))
     except NoSuchTableError:
-        raise HTTPException(
+        raise IcebergHTTPException(
             status_code=404, detail=f"Table does not exist: {(namespace, table)}"
         )
 
@@ -533,13 +540,15 @@ def rename_table(
     try:
         catalog.rename_table(source, destination)
     except NoSuchNamespaceError:
-        raise HTTPException(
+        raise IcebergHTTPException(
             status_code=404, detail=f"Namespace does not exist: {source}"
         )
     except NoSuchTableError:
-        raise HTTPException(status_code=404, detail=f"Table does not exist: {source}")
+        raise IcebergHTTPException(
+            status_code=404, detail=f"Table does not exist: {source}"
+        )
     except TableAlreadyExistsError:
-        raise HTTPException(
+        raise IcebergHTTPException(
             status_code=409, detail=f"Table already exists: {destination}"
         )
 

@@ -35,7 +35,6 @@ spark = (
     .config("spark.sql.catalogImplementation", "in-memory")
     .getOrCreate()
 )
-spark.sparkContext.setLogLevel("ERROR")
 
 # .config("spark.sql.catalog.spark_catalog", "org.apache.iceberg.spark.SparkSessionCatalog") \
 # .config("spark.sql.catalog.spark_catalog.type", "hadoop") \
