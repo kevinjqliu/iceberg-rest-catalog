@@ -8,7 +8,7 @@ from pyiceberg.table.metadata import TableMetadata
 from pyiceberg.schema import Schema
 from pyiceberg.partitioning import PartitionSpec
 from pyiceberg.table.sorting import SortOrder
-from pyiceberg.exceptions import TableAlreadyExistsError, NoSuchTableError, NamespaceAlreadyExistsError
+from pyiceberg.exceptions import TableAlreadyExistsError, NoSuchTableError, NamespaceAlreadyExistsError, NoSuchNamespaceError
 
 app = FastAPI()
 
@@ -238,7 +238,10 @@ def load_namespace_metadata(
     # ),
 ) -> GetNamespaceResponse:
     """Return all stored metadata properties for a given namespace"""
-    properties = catalog.load_namespace_properties(namespace=namespace)
+    try:
+        properties = catalog.load_namespace_properties(namespace=namespace)
+    except NoSuchNamespaceError:
+        raise HTTPException(status_code=404, detail=f"Namespace does not exist: {namespace}")
     return GetNamespaceResponse(namespace=[namespace], properties=properties)
 
 @app.delete(
@@ -270,34 +273,37 @@ def drop_namespace(
     catalog.drop_namespace(namespace)
 
 
-# @app.head(
-#     "/v1/namespaces/{namespace}",
-#     # responses={
-#     #     204: {"description": "Success, no content"},
-#     #     400: {"model": IcebergErrorResponse, "description": "Indicates a bad request error. It could be caused by an unexpected request body format or other forms of request validation failure, such as invalid json. Usually serves application/json content, although in some cases simple text/plain content might be returned by the server&#39;s middleware."},
-#     #     401: {"model": IcebergErrorResponse, "description": "Unauthorized. Authentication is required and has failed or has not yet been provided."},
-#     #     403: {"model": IcebergErrorResponse, "description": "Forbidden. Authenticated user does not have the necessary permissions."},
-#     #     404: {"model": IcebergErrorResponse, "description": "Not Found - Namespace not found"},
-#     #     419: {"model": IcebergErrorResponse, "description": "Credentials have timed out. If possible, the client should refresh credentials and retry."},
-#     #     503: {"model": IcebergErrorResponse, "description": "The service is not ready to handle the request. The client should wait and retry.  The service may additionally send a Retry-After header to indicate when to retry."},
-#     #     500: {"model": IcebergErrorResponse, "description": "A server-side problem that might not be addressable from the client side. Used for server 500 errors without more specific documentation in individual routes."},
-#     # },
-#     tags=["Catalog API"],
-#     summary="Check if a namespace exists",
-#     response_model_by_alias=True,
-# )
-# def namespace_exists(
-#     # prefix: str = Path(..., description="An optional prefix in the path"),
-#     namespace: str = Path(..., description="A namespace identifier as a single string. Multipart namespace parts should be separated by the unit separator (&#x60;0x1F&#x60;) byte."),
-#     # token_OAuth2: TokenModel = Security(
-#     #     get_token_OAuth2, scopes=["catalog"]
-#     # ),
-#     # token_BearerAuth: TokenModel = Security(
-#     #     get_token_BearerAuth
-#     # ),
-# ) -> None:
-#     """Check if a namespace exists. The response does not contain a body."""
-#     return BaseCatalogAPIApi.subclasses[0]().namespace_exists(prefix, namespace)
+@app.head(
+    "/v1/namespaces/{namespace}",
+    # responses={
+    #     204: {"description": "Success, no content"},
+    #     400: {"model": IcebergErrorResponse, "description": "Indicates a bad request error. It could be caused by an unexpected request body format or other forms of request validation failure, such as invalid json. Usually serves application/json content, although in some cases simple text/plain content might be returned by the server&#39;s middleware."},
+    #     401: {"model": IcebergErrorResponse, "description": "Unauthorized. Authentication is required and has failed or has not yet been provided."},
+    #     403: {"model": IcebergErrorResponse, "description": "Forbidden. Authenticated user does not have the necessary permissions."},
+    #     404: {"model": IcebergErrorResponse, "description": "Not Found - Namespace not found"},
+    #     419: {"model": IcebergErrorResponse, "description": "Credentials have timed out. If possible, the client should refresh credentials and retry."},
+    #     503: {"model": IcebergErrorResponse, "description": "The service is not ready to handle the request. The client should wait and retry.  The service may additionally send a Retry-After header to indicate when to retry."},
+    #     500: {"model": IcebergErrorResponse, "description": "A server-side problem that might not be addressable from the client side. Used for server 500 errors without more specific documentation in individual routes."},
+    # },
+    tags=["Catalog API"],
+    summary="Check if a namespace exists",
+    response_model_by_alias=True,
+)
+def namespace_exists(
+    # prefix: str = Path(..., description="An optional prefix in the path"),
+    namespace: str = Path(..., description="A namespace identifier as a single string. Multipart namespace parts should be separated by the unit separator (&#x60;0x1F&#x60;) byte."),
+    # token_OAuth2: TokenModel = Security(
+    #     get_token_OAuth2, scopes=["catalog"]
+    # ),
+    # token_BearerAuth: TokenModel = Security(
+    #     get_token_BearerAuth
+    # ),
+) -> None:
+    """Check if a namespace exists. The response does not contain a body."""
+    try:
+        catalog.load_namespace_properties(namespace=namespace)
+    except NoSuchNamespaceError:
+        raise HTTPException(status_code=404, detail=f"Namespace does not exist: {namespace}")
 
 # /v1/{prefix}/namespaces/{namespace}/properties (POST)
 class UpdateNamespacePropertiesRequest(BaseModel):
