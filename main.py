@@ -9,6 +9,7 @@ from pyiceberg.schema import Schema
 from pyiceberg.partitioning import PartitionSpec
 from pyiceberg.table.sorting import SortOrder
 from pyiceberg.exceptions import TableAlreadyExistsError, NoSuchTableError, NamespaceAlreadyExistsError, NoSuchNamespaceError, NamespaceNotEmptyError
+from pyiceberg.catalog import Catalog
 
 app = FastAPI()
 
@@ -600,10 +601,51 @@ def commit_transaction(
 ) -> None:
     ...
 
+# /v1/{prefix}/tables/rename (POST)
+class RenameTableRequest(BaseModel):
+    """
+    RenameTableRequest
+    """ # noqa: E501
+    source: TableIdentifier
+    destination: TableIdentifier
+
+@app.post(
+    "/v1/tables/rename",
+    # responses={
+    #     204: {"description": "Success, no content"},
+    #     400: {"model": IcebergErrorResponse, "description": "Indicates a bad request error. It could be caused by an unexpected request body format or other forms of request validation failure, such as invalid json. Usually serves application/json content, although in some cases simple text/plain content might be returned by the server&#39;s middleware."},
+    #     401: {"model": IcebergErrorResponse, "description": "Unauthorized. Authentication is required and has failed or has not yet been provided."},
+    #     403: {"model": IcebergErrorResponse, "description": "Forbidden. Authenticated user does not have the necessary permissions."},
+    #     404: {"model": IcebergErrorResponse, "description": "Not Found - NoSuchTableException, Table to rename does not exist - NoSuchNamespaceException, The target namespace of the new table identifier does not exist"},
+    #     406: {"model": ErrorModel, "description": "Not Acceptable / Unsupported Operation. The server does not support this operation."},
+    #     409: {"model": IcebergErrorResponse, "description": "Conflict - The target identifier to rename to already exists as a table or view"},
+    #     419: {"model": IcebergErrorResponse, "description": "Credentials have timed out. If possible, the client should refresh credentials and retry."},
+    #     503: {"model": IcebergErrorResponse, "description": "The service is not ready to handle the request. The client should wait and retry.  The service may additionally send a Retry-After header to indicate when to retry."},
+    #     500: {"model": IcebergErrorResponse, "description": "A server-side problem that might not be addressable from the client side. Used for server 500 errors without more specific documentation in individual routes."},
+    # },
+    tags=["Catalog API"],
+    summary="Rename a table from its current name to a new name",
+    response_model_by_alias=True,
+)
+def rename_table(
+    # prefix: str = Path(..., description="An optional prefix in the path"),
+    rename_table_request: RenameTableRequest = Body(None, description="Current table identifier to rename and new table identifier to rename to"),
+) -> None:
+    """Rename a table from one identifier to another. It&#39;s valid to move a table across namespaces, but the server implementation is not required to support it."""
+    source = (".".join(rename_table_request.source.namespace.root), rename_table_request.source.name)
+    destination = (".".join(rename_table_request.destination.namespace.root), rename_table_request.destination.name)
+    try:
+        catalog.rename_table(source, destination)
+    except NoSuchNamespaceError:
+        raise HTTPException(status_code=404, detail=f"Namespace does not exist: {source}")
+    except NoSuchTableError:
+        raise HTTPException(status_code=404, detail=f"Table does not exist: {source}")
+    except TableAlreadyExistsError:
+        raise HTTPException(status_code=409, detail=f"Table already exists: {destination}")
+
 
 # /v1/oauth/tokens
 # /v1/{prefix}/namespaces/{namespace}/views
 # /v1/{prefix}/namespaces/{namespace}/views/{view}
 # /v1/{prefix}/views/rename
-# /v1/{prefix}/tables/rename (POST)
 # /v1/{prefix}/namespaces/{namespace}/tables/{table}/metrics (POST)
