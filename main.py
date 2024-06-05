@@ -8,7 +8,7 @@ from pyiceberg.table.metadata import TableMetadata
 from pyiceberg.schema import Schema
 from pyiceberg.partitioning import PartitionSpec
 from pyiceberg.table.sorting import SortOrder
-from pyiceberg.exceptions import TableAlreadyExistsError
+from pyiceberg.exceptions import TableAlreadyExistsError, NoSuchTableError
 
 app = FastAPI()
 
@@ -537,7 +537,11 @@ def load_table(
     # ),
 ) -> LoadTableResult:
     """Load a table from the catalog.  The response contains both configuration and table metadata. The configuration, if non-empty is used as additional configuration for the table that overrides catalog configuration. For example, this configuration may change the FileIO implementation to be used for the table.  The response also contains the table&#39;s full metadata, matching the table metadata JSON file.  The catalog configuration may contain credentials that should be used for subsequent requests for the table. The configuration key \&quot;token\&quot; is used to pass an access token to be used as a bearer token for table requests. Otherwise, a token may be passed using a RFC 8693 token type as a configuration key. For example, \&quot;urn:ietf:params:oauth:token-type:jwt&#x3D;&lt;JWT-token&gt;\&quot;."""
-    tbl = catalog.load_table(identifier=(namespace, table))
+    try:
+        identifier = (namespace, table)
+        tbl = catalog.load_table(identifier=identifier)
+    except NoSuchTableError:
+        raise HTTPException(status_code=404, detail=f"Table does not exist: {identifier}")
     return LoadTableResult(metadata_location=tbl.metadata_location, metadata=tbl.metadata, config=tbl.properties)
 
 class CommitTableRequest(BaseModel):
