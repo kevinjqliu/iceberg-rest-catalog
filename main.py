@@ -119,7 +119,6 @@ class CreateNamespaceResponse(BaseModel):
     response_model_by_alias=True,
 )
 def create_namespace(
-    # prefix: str = Path(..., description="An optional prefix in the path"),
     create_namespace_request: CreateNamespaceRequest = Body(None, description=""),
 ) -> CreateNamespaceResponse:
     """Create a namespace, with an optional set of properties. The server might also add properties, such as &#x60;last_modified_time&#x60; etc."""
@@ -156,7 +155,6 @@ class ListNamespacesResponse(BaseModel):
     response_model_by_alias=True,
 )
 def list_namespaces(
-    # prefix: str = Path(..., description="An optional prefix in the path"),
     # page_token: str = Query(None, description="", alias="pageToken"),
     # page_size: int = Query(None, description="For servers that support pagination, this signals an upper bound of the number of results that a client will receive. For servers that do not support pagination, clients may receive results larger than the indicated &#x60;pageSize&#x60;.", alias="pageSize", ge=1),
     # parent: str = Query(None, description="An optional namespace, underneath which to list namespaces. If not provided or empty, all top-level namespaces should be listed. If parent is a multipart namespace, the parts must be separated by the unit separator (&#x60;0x1F&#x60;) byte.", alias="parent"),
@@ -189,7 +187,6 @@ class GetNamespaceResponse(BaseModel):
     response_model_by_alias=True,
 )
 def load_namespace_metadata(
-    # prefix: str = Path(..., description="An optional prefix in the path"),
     namespace: str = Path(..., description="A namespace identifier as a single string. Multipart namespace parts should be separated by the unit separator (&#x60;0x1F&#x60;) byte."),
 ) -> GetNamespaceResponse:
     """Return all stored metadata properties for a given namespace"""
@@ -216,7 +213,6 @@ def load_namespace_metadata(
     response_model_by_alias=True,
 )
 def drop_namespace(
-    # prefix: str = Path(..., description="An optional prefix in the path"),
     namespace: str = Path(..., description="A namespace identifier as a single string. Multipart namespace parts should be separated by the unit separator (&#x60;0x1F&#x60;) byte."),
 ) -> None:
     try:
@@ -244,7 +240,6 @@ def drop_namespace(
     response_model_by_alias=True,
 )
 def namespace_exists(
-    # prefix: str = Path(..., description="An optional prefix in the path"),
     namespace: str = Path(..., description="A namespace identifier as a single string. Multipart namespace parts should be separated by the unit separator (&#x60;0x1F&#x60;) byte."),
 ) -> None:
     """Check if a namespace exists. The response does not contain a body."""
@@ -288,7 +283,6 @@ class UpdateNamespacePropertiesResponse(BaseModel):
     response_model_by_alias=True,
 )
 def update_namespace_properties(
-    # prefix: str = Path(..., description="An optional prefix in the path"),
     namespace: str = Path(..., description="A namespace identifier as a single string. Multipart namespace parts should be separated by the unit separator (&#x60;0x1F&#x60;) byte."),
     update_namespace_properties_request: UpdateNamespacePropertiesRequest = Body(None, description=""),
 ) -> UpdateNamespacePropertiesResponse:
@@ -324,7 +318,6 @@ class ListTablesResponse(BaseModel):
     response_model_by_alias=True,
 )
 def list_tables(
-    # prefix: str = Path(..., description="An optional prefix in the path"),
     namespace: str = Path(..., description="A namespace identifier as a single string. Multipart namespace parts should be separated by the unit separator (&#x60;0x1F&#x60;) byte."),
     page_token: str = Query(None, description="", alias="pageToken"),
     page_size: int = Query(None, description="For servers that support pagination, this signals an upper bound of the number of results that a client will receive. For servers that do not support pagination, clients may receive results larger than the indicated &#x60;pageSize&#x60;.", alias="pageSize", ge=1),
@@ -373,7 +366,6 @@ class LoadTableResult(BaseModel):
     response_model_by_alias=True,
 )
 def create_table(
-    # prefix: str = Path(..., description="An optional prefix in the path"),
     namespace: str = Path(..., description="A namespace identifier as a single string. Multipart namespace parts should be separated by the unit separator (&#x60;0x1F&#x60;) byte."),
     # x_iceberg_access_delegation: str = Header(None, description="Optional signal to the server that the client supports delegated access via a comma-separated list of access mechanisms.  The server may choose to supply access via any or none of the requested mechanisms.  Specific properties and handling for &#x60;vended-credentials&#x60; is documented in the &#x60;LoadTableResult&#x60; schema section of this spec document.  The protocol and specification for &#x60;remote-signing&#x60; is documented in  the &#x60;s3-signer-open-api.yaml&#x60; OpenApi spec in the &#x60;aws&#x60; module. "),
     create_table_request: CreateTableRequest = Body(None, description=""),
@@ -434,7 +426,6 @@ class RegisterTableRequest(BaseModel):
     response_model_by_alias=True,
 )
 def register_table(
-    # prefix: str = Path(..., description="An optional prefix in the path"),
     namespace: str = Path(..., description="A namespace identifier as a single string. Multipart namespace parts should be separated by the unit separator (&#x60;0x1F&#x60;) byte."),
     register_table_request: RegisterTableRequest = Body(None, description=""),
 ) -> LoadTableResult:
@@ -460,7 +451,6 @@ def register_table(
     response_model_by_alias=True,
 )
 def load_table(
-    # prefix: str = Path(..., description="An optional prefix in the path"),
     namespace: str = Path(..., description="A namespace identifier as a single string. Multipart namespace parts should be separated by the unit separator (&#x60;0x1F&#x60;) byte."),
     table: str = Path(..., description="A table name"),
     x_iceberg_access_delegation: str = Header(None, description="Optional signal to the server that the client supports delegated access via a comma-separated list of access mechanisms.  The server may choose to supply access via any or none of the requested mechanisms.  Specific properties and handling for &#x60;vended-credentials&#x60; is documented in the &#x60;LoadTableResult&#x60; schema section of this spec document.  The protocol and specification for &#x60;remote-signing&#x60; is documented in  the &#x60;s3-signer-open-api.yaml&#x60; OpenApi spec in the &#x60;aws&#x60; module. "),
@@ -510,7 +500,6 @@ class CommitTableResponse(BaseModel):
     response_model_by_alias=True,
 )
 def update_table(
-    # prefix: str = Path(..., description="An optional prefix in the path"),
     namespace: str = Path(..., description="A namespace identifier as a single string. Multipart namespace parts should be separated by the unit separator (&#x60;0x1F&#x60;) byte."),
     table: str = Path(..., description="A table name"),
     commit_table_request: CommitTableRequest = Body(None, description=""),
@@ -535,7 +524,6 @@ def update_table(
     response_model_by_alias=True,
 )
 def drop_table(
-    # prefix: str = Path(..., description="An optional prefix in the path"),
     namespace: str = Path(..., description="A namespace identifier as a single string. Multipart namespace parts should be separated by the unit separator (&#x60;0x1F&#x60;) byte."),
     table: str = Path(..., description="A table name"),
     purge_requested: bool = Query(False, description="Whether the user requested to purge the underlying table&#39;s data and metadata", alias="purgeRequested"),
@@ -561,7 +549,6 @@ def drop_table(
     response_model_by_alias=True,
 )
 def table_exists(
-    # prefix: str = Path(..., description="An optional prefix in the path"),
     namespace: str = Path(..., description="A namespace identifier as a single string. Multipart namespace parts should be separated by the unit separator (&#x60;0x1F&#x60;) byte."),
     table: str = Path(..., description="A table name"),
 ) -> None:
@@ -596,7 +583,6 @@ class CommitTransactionRequest(BaseModel):
     response_model_by_alias=True,
 )
 def commit_transaction(
-    # prefix: str = Path(..., description="An optional prefix in the path"),
     commit_transaction_request: CommitTransactionRequest = Body(None, description="Commit updates to multiple tables in an atomic operation  A commit for a single table consists of a table identifier with requirements and updates. Requirements are assertions that will be validated before attempting to make and commit changes. For example, &#x60;assert-ref-snapshot-id&#x60; will check that a named ref&#39;s snapshot ID has a certain value.  Updates are changes to make to table metadata. For example, after asserting that the current main ref is at the expected snapshot, a commit may add a new child snapshot and set the ref to the new snapshot id."),
 ) -> None:
     ...
@@ -628,7 +614,6 @@ class RenameTableRequest(BaseModel):
     response_model_by_alias=True,
 )
 def rename_table(
-    # prefix: str = Path(..., description="An optional prefix in the path"),
     rename_table_request: RenameTableRequest = Body(None, description="Current table identifier to rename and new table identifier to rename to"),
 ) -> None:
     """Rename a table from one identifier to another. It&#39;s valid to move a table across namespaces, but the server implementation is not required to support it."""
