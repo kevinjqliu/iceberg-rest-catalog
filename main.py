@@ -8,7 +8,7 @@ from pyiceberg.table.metadata import TableMetadata
 from pyiceberg.schema import Schema
 from pyiceberg.partitioning import PartitionSpec
 from pyiceberg.table.sorting import SortOrder
-from pyiceberg.exceptions import TableAlreadyExistsError, NoSuchTableError
+from pyiceberg.exceptions import TableAlreadyExistsError, NoSuchTableError, NamespaceAlreadyExistsError
 
 app = FastAPI()
 
@@ -158,7 +158,10 @@ def create_namespace(
     """Create a namespace, with an optional set of properties. The server might also add properties, such as &#x60;last_modified_time&#x60; etc."""
     namespace = tuple(create_namespace_request.namespace)
     properties = create_namespace_request.properties
-    catalog.create_namespace(namespace, properties)
+    try:
+        catalog.create_namespace(namespace, properties)
+    except NamespaceAlreadyExistsError:
+        raise HTTPException(status_code=409, detail=f"Namespace already exists: {namespace}")
     return CreateNamespaceResponse(namespace=namespace, properties=properties)
 
 class ListNamespacesResponse(BaseModel):
