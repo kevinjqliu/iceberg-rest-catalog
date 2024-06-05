@@ -4,6 +4,7 @@ fastapi
 # install pyiceberg from vendor directory
 # pip install ./vendor/iceberg-python                                             
 sqlalchemy
+pyiceberg[pyarrow]
 pyiceberg[s3fs]
 ruff
 # tests

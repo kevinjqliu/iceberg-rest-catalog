@@ -43,11 +43,11 @@ catalog = SqlCatalog(
     "default",
     **{
         "uri": f"sqlite:///{warehouse_path}/pyiceberg_catalog.db",
-        # "warehouse": f"file://{warehouse_path}",
-        "warehouse": "s3://warehouse/rest/",
-        "s3.endpoint": "http://localhost:9000",
-        "s3.access-key-id": "admin",
-        "s3.secret-access-key": "password",
+        "warehouse": f"file://{warehouse_path}",
+        # "warehouse": "s3://warehouse/rest/",
+        # "s3.endpoint": "http://localhost:9000",
+        # "s3.access-key-id": "admin",
+        # "s3.secret-access-key": "password",
     },
 )
 # recreate the db
@@ -76,11 +76,11 @@ catalog.create_tables()
 # )
 
 
-# @app.get("/reset")
-# def reset():
-#     catalog.destroy_tables()
-#     catalog.create_tables()
-#     return {"status": "ok"}
+@app.get("/reset")
+def reset():
+    catalog.destroy_tables()
+    catalog.create_tables()
+    return {"status": "ok"}
 
 
 # /v1/config
@@ -160,13 +160,14 @@ def load_namespace_metadata(
     ),
 ) -> GetNamespaceResponse:
     """Return all stored metadata properties for a given namespace"""
+    namespace_tuple = (namespace,)
     try:
-        properties = catalog.load_namespace_properties(namespace=namespace)
+        properties = catalog.load_namespace_properties(namespace=namespace_tuple)
     except NoSuchNamespaceError:
         raise HTTPException(
-            status_code=404, detail=f"Namespace does not exist: {namespace}"
+            status_code=404, detail=f"Namespace does not exist: {namespace_tuple}"
         )
-    return GetNamespaceResponse(namespace=[namespace], properties=properties)
+    return GetNamespaceResponse(namespace=namespace_tuple, properties=properties)
 
 
 @app.delete(
@@ -181,15 +182,16 @@ def drop_namespace(
         description="A namespace identifier as a single string. Multipart namespace parts should be separated by the unit separator (&#x60;0x1F&#x60;) byte.",
     ),
 ) -> None:
+    namespace_tuple = (namespace,)
     try:
-        catalog.drop_namespace(namespace)
+        catalog.drop_namespace(namespace_tuple)
     except NoSuchNamespaceError:
         raise HTTPException(
-            status_code=404, detail=f"Namespace does not exist: {(namespace,)}"
+            status_code=404, detail=f"Namespace does not exist: {namespace_tuple}"
         )
     except NamespaceNotEmptyError:
         raise HTTPException(
-            status_code=409, detail=f"Namespace is not empty: {(namespace,)}"
+            status_code=409, detail=f"Namespace is not empty: {namespace_tuple}"
         )
 
 
@@ -231,15 +233,16 @@ def update_namespace_properties(
     ),
 ) -> UpdateNamespacePropertiesResponse:
     """Set and/or remove properties on a namespace. The request body specifies a list of properties to remove and a map of key value pairs to update. Properties that are not in the request are not modified or removed by this call. Server implementations are not required to support namespace properties."""
+    namespace_tuple = (namespace,)
     try:
         summary = catalog.update_namespace_properties(
-            namespace=namespace,
+            namespace=namespace_tuple,
             removals=set(update_namespace_properties_request.removals),
             updates=update_namespace_properties_request.updates,
         )
     except NoSuchNamespaceError:
         raise HTTPException(
-            status_code=404, detail=f"Namespace does not exist: {namespace}"
+            status_code=404, detail=f"Namespace does not exist: {namespace_tuple}"
         )
     return UpdateNamespacePropertiesResponse(
         updated=sorted(summary.updated),

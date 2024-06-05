@@ -104,11 +104,22 @@ def pytest_collection_modifyitems(items: List[pytest.Item]) -> None:
 def pytest_addoption(parser: pytest.Parser) -> None:
     # S3 options
     parser.addoption(
-        "--s3.endpoint", action="store", default="http://localhost:9000", help="The S3 endpoint URL for tests marked as s3"
+        "--s3.endpoint",
+        action="store",
+        default="http://localhost:9000",
+        help="The S3 endpoint URL for tests marked as s3",
     )
-    parser.addoption("--s3.access-key-id", action="store", default="admin", help="The AWS access key ID for tests marked as s3")
     parser.addoption(
-        "--s3.secret-access-key", action="store", default="password", help="The AWS secret access key ID for tests marked as s3"
+        "--s3.access-key-id",
+        action="store",
+        default="admin",
+        help="The AWS access key ID for tests marked as s3",
+    )
+    parser.addoption(
+        "--s3.secret-access-key",
+        action="store",
+        default="password",
+        help="The AWS secret access key ID for tests marked as s3",
     )
     # ADLFS options
     # Azurite provides default account name and key.  Those can be customized using env variables.
@@ -120,7 +131,10 @@ def pytest_addoption(parser: pytest.Parser) -> None:
         help="The ADLS endpoint URL for tests marked as adlfs",
     )
     parser.addoption(
-        "--adlfs.account-name", action="store", default="devstoreaccount1", help="The ADLS account key for tests marked as adlfs"
+        "--adlfs.account-name",
+        action="store",
+        default="devstoreaccount1",
+        help="The ADLS account key for tests marked as adlfs",
     )
     parser.addoption(
         "--adlfs.account-key",
@@ -129,12 +143,23 @@ def pytest_addoption(parser: pytest.Parser) -> None:
         help="The ADLS secret account key for tests marked as adlfs",
     )
     parser.addoption(
-        "--gcs.endpoint", action="store", default="http://0.0.0.0:4443", help="The GCS endpoint URL for tests marked gcs"
+        "--gcs.endpoint",
+        action="store",
+        default="http://0.0.0.0:4443",
+        help="The GCS endpoint URL for tests marked gcs",
     )
     parser.addoption(
-        "--gcs.oauth2.token", action="store", default="anon", help="The GCS authentication method for tests marked gcs"
+        "--gcs.oauth2.token",
+        action="store",
+        default="anon",
+        help="The GCS authentication method for tests marked gcs",
     )
-    parser.addoption("--gcs.project-id", action="store", default="test", help="The GCP project for tests marked gcs")
+    parser.addoption(
+        "--gcs.project-id",
+        action="store",
+        default="test",
+        help="The GCP project for tests marked gcs",
+    )
 
 
 @pytest.fixture(scope="session")
@@ -157,7 +182,9 @@ def table_schema_nested() -> Schema:
         NestedField(
             field_id=4,
             name="qux",
-            field_type=ListType(element_id=5, element_type=StringType(), element_required=True),
+            field_type=ListType(
+                element_id=5, element_type=StringType(), element_required=True
+            ),
             required=True,
         ),
         NestedField(
@@ -167,7 +194,13 @@ def table_schema_nested() -> Schema:
                 key_id=7,
                 key_type=StringType(),
                 value_id=8,
-                value_type=MapType(key_id=9, key_type=StringType(), value_id=10, value_type=IntegerType(), value_required=True),
+                value_type=MapType(
+                    key_id=9,
+                    key_type=StringType(),
+                    value_id=10,
+                    value_type=IntegerType(),
+                    value_required=True,
+                ),
                 value_required=True,
             ),
             required=True,
@@ -178,8 +211,18 @@ def table_schema_nested() -> Schema:
             field_type=ListType(
                 element_id=12,
                 element_type=StructType(
-                    NestedField(field_id=13, name="latitude", field_type=FloatType(), required=False),
-                    NestedField(field_id=14, name="longitude", field_type=FloatType(), required=False),
+                    NestedField(
+                        field_id=13,
+                        name="latitude",
+                        field_type=FloatType(),
+                        required=False,
+                    ),
+                    NestedField(
+                        field_id=14,
+                        name="longitude",
+                        field_type=FloatType(),
+                        required=False,
+                    ),
                 ),
                 element_required=True,
             ),
@@ -189,8 +232,12 @@ def table_schema_nested() -> Schema:
             field_id=15,
             name="person",
             field_type=StructType(
-                NestedField(field_id=16, name="name", field_type=StringType(), required=False),
-                NestedField(field_id=17, name="age", field_type=IntegerType(), required=True),
+                NestedField(
+                    field_id=16, name="name", field_type=StringType(), required=False
+                ),
+                NestedField(
+                    field_id=17, name="age", field_type=IntegerType(), required=True
+                ),
             ),
             required=False,
         ),
@@ -208,7 +255,9 @@ def table_schema_nested_with_struct_key_map() -> Schema:
         NestedField(
             field_id=4,
             name="qux",
-            field_type=ListType(element_id=5, element_type=StringType(), element_required=True),
+            field_type=ListType(
+                element_id=5, element_type=StringType(), element_required=True
+            ),
             required=True,
         ),
         NestedField(
@@ -218,7 +267,13 @@ def table_schema_nested_with_struct_key_map() -> Schema:
                 key_id=7,
                 key_type=StringType(),
                 value_id=8,
-                value_type=MapType(key_id=9, key_type=StringType(), value_id=10, value_type=IntegerType(), value_required=True),
+                value_type=MapType(
+                    key_id=9,
+                    key_type=StringType(),
+                    value_id=10,
+                    value_type=IntegerType(),
+                    value_required=True,
+                ),
                 value_required=True,
             ),
             required=True,
@@ -230,13 +285,32 @@ def table_schema_nested_with_struct_key_map() -> Schema:
                 key_id=18,
                 value_id=19,
                 key_type=StructType(
-                    NestedField(field_id=21, name="address", field_type=StringType(), required=True),
-                    NestedField(field_id=22, name="city", field_type=StringType(), required=True),
-                    NestedField(field_id=23, name="zip", field_type=IntegerType(), required=True),
+                    NestedField(
+                        field_id=21,
+                        name="address",
+                        field_type=StringType(),
+                        required=True,
+                    ),
+                    NestedField(
+                        field_id=22, name="city", field_type=StringType(), required=True
+                    ),
+                    NestedField(
+                        field_id=23, name="zip", field_type=IntegerType(), required=True
+                    ),
                 ),
                 value_type=StructType(
-                    NestedField(field_id=13, name="latitude", field_type=FloatType(), required=True),
-                    NestedField(field_id=14, name="longitude", field_type=FloatType(), required=True),
+                    NestedField(
+                        field_id=13,
+                        name="latitude",
+                        field_type=FloatType(),
+                        required=True,
+                    ),
+                    NestedField(
+                        field_id=14,
+                        name="longitude",
+                        field_type=FloatType(),
+                        required=True,
+                    ),
                 ),
                 value_required=True,
             ),
@@ -246,8 +320,12 @@ def table_schema_nested_with_struct_key_map() -> Schema:
             field_id=15,
             name="person",
             field_type=StructType(
-                NestedField(field_id=16, name="name", field_type=StringType(), required=False),
-                NestedField(field_id=17, name="age", field_type=IntegerType(), required=True),
+                NestedField(
+                    field_id=16, name="name", field_type=StringType(), required=False
+                ),
+                NestedField(
+                    field_id=17, name="age", field_type=IntegerType(), required=True
+                ),
             ),
             required=False,
         ),
@@ -257,8 +335,12 @@ def table_schema_nested_with_struct_key_map() -> Schema:
             field_type=ListType(
                 element_id=25,
                 element_type=StructType(
-                    NestedField(field_id=26, name="x", field_type=LongType(), required=True),
-                    NestedField(field_id=27, name="y", field_type=LongType(), required=True),
+                    NestedField(
+                        field_id=26, name="x", field_type=LongType(), required=True
+                    ),
+                    NestedField(
+                        field_id=27, name="y", field_type=LongType(), required=True
+                    ),
                 ),
                 element_required=False,
             ),
@@ -274,16 +356,26 @@ def table_schema_nested_with_struct_key_map() -> Schema:
 @pytest.fixture(scope="session")
 def table_schema_with_all_types() -> Schema:
     return schema.Schema(
-        NestedField(field_id=1, name="boolean", field_type=BooleanType(), required=True),
-        NestedField(field_id=2, name="integer", field_type=IntegerType(), required=True),
+        NestedField(
+            field_id=1, name="boolean", field_type=BooleanType(), required=True
+        ),
+        NestedField(
+            field_id=2, name="integer", field_type=IntegerType(), required=True
+        ),
         NestedField(field_id=3, name="long", field_type=LongType(), required=True),
         NestedField(field_id=4, name="float", field_type=FloatType(), required=True),
         NestedField(field_id=5, name="double", field_type=DoubleType(), required=True),
-        NestedField(field_id=6, name="decimal", field_type=DecimalType(32, 3), required=True),
+        NestedField(
+            field_id=6, name="decimal", field_type=DecimalType(32, 3), required=True
+        ),
         NestedField(field_id=7, name="date", field_type=DateType(), required=True),
         NestedField(field_id=8, name="time", field_type=TimeType(), required=True),
-        NestedField(field_id=9, name="timestamp", field_type=TimestampType(), required=True),
-        NestedField(field_id=10, name="timestamptz", field_type=TimestamptzType(), required=True),
+        NestedField(
+            field_id=9, name="timestamp", field_type=TimestampType(), required=True
+        ),
+        NestedField(
+            field_id=10, name="timestamptz", field_type=TimestamptzType(), required=True
+        ),
         NestedField(field_id=11, name="string", field_type=StringType(), required=True),
         NestedField(field_id=12, name="uuid", field_type=UUIDType(), required=True),
         NestedField(field_id=14, name="fixed", field_type=FixedType(12), required=True),
@@ -291,7 +383,9 @@ def table_schema_with_all_types() -> Schema:
         NestedField(
             field_id=15,
             name="list",
-            field_type=ListType(element_id=16, element_type=StringType(), element_required=True),
+            field_type=ListType(
+                element_id=16, element_type=StringType(), element_required=True
+            ),
             required=True,
         ),
         NestedField(
@@ -310,8 +404,18 @@ def table_schema_with_all_types() -> Schema:
             field_id=20,
             name="struct",
             field_type=StructType(
-                NestedField(field_id=21, name="inner_string", field_type=StringType(), required=False),
-                NestedField(field_id=22, name="inner_int", field_type=IntegerType(), required=True),
+                NestedField(
+                    field_id=21,
+                    name="inner_string",
+                    field_type=StringType(),
+                    required=False,
+                ),
+                NestedField(
+                    field_id=22,
+                    name="inner_int",
+                    field_type=IntegerType(),
+                    required=True,
+                ),
             ),
         ),
         schema_id=1,
@@ -323,49 +427,57 @@ def table_schema_with_all_types() -> Schema:
 def pyarrow_schema_simple_without_ids() -> "pa.Schema":
     import pyarrow as pa
 
-    return pa.schema([
-        pa.field("foo", pa.string(), nullable=True),
-        pa.field("bar", pa.int32(), nullable=False),
-        pa.field("baz", pa.bool_(), nullable=True),
-    ])
+    return pa.schema(
+        [
+            pa.field("foo", pa.string(), nullable=True),
+            pa.field("bar", pa.int32(), nullable=False),
+            pa.field("baz", pa.bool_(), nullable=True),
+        ]
+    )
 
 
 @pytest.fixture(scope="session")
 def pyarrow_schema_nested_without_ids() -> "pa.Schema":
     import pyarrow as pa
 
-    return pa.schema([
-        pa.field("foo", pa.string(), nullable=False),
-        pa.field("bar", pa.int32(), nullable=False),
-        pa.field("baz", pa.bool_(), nullable=True),
-        pa.field("qux", pa.list_(pa.string()), nullable=False),
-        pa.field(
-            "quux",
-            pa.map_(
-                pa.string(),
-                pa.map_(pa.string(), pa.int32()),
+    return pa.schema(
+        [
+            pa.field("foo", pa.string(), nullable=False),
+            pa.field("bar", pa.int32(), nullable=False),
+            pa.field("baz", pa.bool_(), nullable=True),
+            pa.field("qux", pa.list_(pa.string()), nullable=False),
+            pa.field(
+                "quux",
+                pa.map_(
+                    pa.string(),
+                    pa.map_(pa.string(), pa.int32()),
+                ),
+                nullable=False,
             ),
-            nullable=False,
-        ),
-        pa.field(
-            "location",
-            pa.list_(
-                pa.struct([
-                    pa.field("latitude", pa.float32(), nullable=False),
-                    pa.field("longitude", pa.float32(), nullable=False),
-                ]),
+            pa.field(
+                "location",
+                pa.list_(
+                    pa.struct(
+                        [
+                            pa.field("latitude", pa.float32(), nullable=False),
+                            pa.field("longitude", pa.float32(), nullable=False),
+                        ]
+                    ),
+                ),
+                nullable=False,
             ),
-            nullable=False,
-        ),
-        pa.field(
-            "person",
-            pa.struct([
-                pa.field("name", pa.string(), nullable=True),
-                pa.field("age", pa.int32(), nullable=False),
-            ]),
-            nullable=True,
-        ),
-    ])
+            pa.field(
+                "person",
+                pa.struct(
+                    [
+                        pa.field("name", pa.string(), nullable=True),
+                        pa.field("age", pa.int32(), nullable=False),
+                    ]
+                ),
+                nullable=True,
+            ),
+        ]
+    )
 
 
 @pytest.fixture(scope="session")
@@ -406,7 +518,9 @@ def iceberg_schema_nested() -> Schema:
         NestedField(
             field_id=4,
             name="qux",
-            field_type=ListType(element_id=5, element_type=StringType(), element_required=False),
+            field_type=ListType(
+                element_id=5, element_type=StringType(), element_required=False
+            ),
             required=True,
         ),
         NestedField(
@@ -416,7 +530,13 @@ def iceberg_schema_nested() -> Schema:
                 key_id=7,
                 key_type=StringType(),
                 value_id=8,
-                value_type=MapType(key_id=9, key_type=StringType(), value_id=10, value_type=IntegerType(), value_required=False),
+                value_type=MapType(
+                    key_id=9,
+                    key_type=StringType(),
+                    value_id=10,
+                    value_type=IntegerType(),
+                    value_required=False,
+                ),
                 value_required=False,
             ),
             required=True,
@@ -427,8 +547,18 @@ def iceberg_schema_nested() -> Schema:
             field_type=ListType(
                 element_id=12,
                 element_type=StructType(
-                    NestedField(field_id=13, name="latitude", field_type=FloatType(), required=True),
-                    NestedField(field_id=14, name="longitude", field_type=FloatType(), required=True),
+                    NestedField(
+                        field_id=13,
+                        name="latitude",
+                        field_type=FloatType(),
+                        required=True,
+                    ),
+                    NestedField(
+                        field_id=14,
+                        name="longitude",
+                        field_type=FloatType(),
+                        required=True,
+                    ),
                 ),
                 element_required=False,
             ),
@@ -438,8 +568,12 @@ def iceberg_schema_nested() -> Schema:
             field_id=15,
             name="person",
             field_type=StructType(
-                NestedField(field_id=16, name="name", field_type=StringType(), required=False),
-                NestedField(field_id=17, name="age", field_type=IntegerType(), required=True),
+                NestedField(
+                    field_id=16, name="name", field_type=StringType(), required=False
+                ),
+                NestedField(
+                    field_id=17, name="age", field_type=IntegerType(), required=True
+                ),
             ),
             required=False,
         ),
@@ -455,7 +589,9 @@ def iceberg_schema_nested_no_ids() -> Schema:
         NestedField(
             field_id=-1,
             name="qux",
-            field_type=ListType(element_id=-1, element_type=StringType(), element_required=False),
+            field_type=ListType(
+                element_id=-1, element_type=StringType(), element_required=False
+            ),
             required=True,
         ),
         NestedField(
@@ -465,7 +601,13 @@ def iceberg_schema_nested_no_ids() -> Schema:
                 key_id=-1,
                 key_type=StringType(),
                 value_id=-1,
-                value_type=MapType(key_id=-1, key_type=StringType(), value_id=-1, value_type=IntegerType(), value_required=False),
+                value_type=MapType(
+                    key_id=-1,
+                    key_type=StringType(),
+                    value_id=-1,
+                    value_type=IntegerType(),
+                    value_required=False,
+                ),
                 value_required=False,
             ),
             required=True,
@@ -476,8 +618,18 @@ def iceberg_schema_nested_no_ids() -> Schema:
             field_type=ListType(
                 element_id=-1,
                 element_type=StructType(
-                    NestedField(field_id=-1, name="latitude", field_type=FloatType(), required=True),
-                    NestedField(field_id=-1, name="longitude", field_type=FloatType(), required=True),
+                    NestedField(
+                        field_id=-1,
+                        name="latitude",
+                        field_type=FloatType(),
+                        required=True,
+                    ),
+                    NestedField(
+                        field_id=-1,
+                        name="longitude",
+                        field_type=FloatType(),
+                        required=True,
+                    ),
                 ),
                 element_required=False,
             ),
@@ -487,8 +639,12 @@ def iceberg_schema_nested_no_ids() -> Schema:
             field_id=-1,
             name="person",
             field_type=StructType(
-                NestedField(field_id=-1, name="name", field_type=StringType(), required=False),
-                NestedField(field_id=-1, name="age", field_type=IntegerType(), required=True),
+                NestedField(
+                    field_id=-1, name="name", field_type=StringType(), required=False
+                ),
+                NestedField(
+                    field_id=-1, name="age", field_type=IntegerType(), required=True
+                ),
             ),
             required=False,
         ),
@@ -552,9 +708,17 @@ def all_avro_types() -> Dict[str, Any]:
                                 "type": "record",
                                 "name": "person",
                                 "fields": [
-                                    {"name": "name", "type": "string", "field-id": 1002},
+                                    {
+                                        "name": "name",
+                                        "type": "string",
+                                        "field-id": 1002,
+                                    },
                                     {"name": "age", "type": "long", "field-id": 1003},
-                                    {"name": "gender", "type": ["string", "null"], "field-id": 1004},
+                                    {
+                                        "name": "gender",
+                                        "type": ["string", "null"],
+                                        "field-id": 1004,
+                                    },
                                 ],
                             },
                         ],
@@ -592,7 +756,9 @@ EXAMPLE_TABLE_METADATA_V1 = {
             {"id": 3, "name": "z", "required": True, "type": "long"},
         ],
     },
-    "partition-spec": [{"name": "x", "transform": "identity", "source-id": 1, "field-id": 1000}],
+    "partition-spec": [
+        {"name": "x", "transform": "identity", "source-id": 1, "field-id": 1000}
+    ],
     "properties": {},
     "current-snapshot-id": -1,
     "snapshots": [{"snapshot-id": 1925, "timestamp-ms": 1602638573822}],
@@ -663,7 +829,9 @@ EXAMPLE_TABLE_METADATA_WITH_SNAPSHOT_V1 = {
             "schema-id": 0,
         }
     ],
-    "snapshot-log": [{"timestamp-ms": 1646787054459, "snapshot-id": 3497810964824022504}],
+    "snapshot-log": [
+        {"timestamp-ms": 1646787054459, "snapshot-id": 3497810964824022504}
+    ],
     "metadata-log": [
         {
             "timestamp-ms": 1646787031514,
@@ -740,28 +908,55 @@ EXAMPLE_TABLE_METADATA_V2 = {
     "last-column-id": 3,
     "current-schema-id": 1,
     "schemas": [
-        {"type": "struct", "schema-id": 0, "fields": [{"id": 1, "name": "x", "required": True, "type": "long"}]},
+        {
+            "type": "struct",
+            "schema-id": 0,
+            "fields": [{"id": 1, "name": "x", "required": True, "type": "long"}],
+        },
         {
             "type": "struct",
             "schema-id": 1,
             "identifier-field-ids": [1, 2],
             "fields": [
                 {"id": 1, "name": "x", "required": True, "type": "long"},
-                {"id": 2, "name": "y", "required": True, "type": "long", "doc": "comment"},
+                {
+                    "id": 2,
+                    "name": "y",
+                    "required": True,
+                    "type": "long",
+                    "doc": "comment",
+                },
                 {"id": 3, "name": "z", "required": True, "type": "long"},
             ],
         },
     ],
     "default-spec-id": 0,
-    "partition-specs": [{"spec-id": 0, "fields": [{"name": "x", "transform": "identity", "source-id": 1, "field-id": 1000}]}],
+    "partition-specs": [
+        {
+            "spec-id": 0,
+            "fields": [
+                {"name": "x", "transform": "identity", "source-id": 1, "field-id": 1000}
+            ],
+        }
+    ],
     "last-partition-id": 1000,
     "default-sort-order-id": 3,
     "sort-orders": [
         {
             "order-id": 3,
             "fields": [
-                {"transform": "identity", "source-id": 2, "direction": "asc", "null-order": "nulls-first"},
-                {"transform": "bucket[4]", "source-id": 3, "direction": "desc", "null-order": "nulls-last"},
+                {
+                    "transform": "identity",
+                    "source-id": 2,
+                    "direction": "asc",
+                    "null-order": "nulls-first",
+                },
+                {
+                    "transform": "bucket[4]",
+                    "source-id": 3,
+                    "direction": "desc",
+                    "null-order": "nulls-last",
+                },
             ],
         }
     ],
@@ -789,8 +984,16 @@ EXAMPLE_TABLE_METADATA_V2 = {
         {"snapshot-id": 3051729675574597004, "timestamp-ms": 1515100955770},
         {"snapshot-id": 3055729675574597004, "timestamp-ms": 1555100955770},
     ],
-    "metadata-log": [{"metadata-file": "s3://bucket/.../v1.json", "timestamp-ms": 1515100}],
-    "refs": {"test": {"snapshot-id": 3051729675574597004, "type": "tag", "max-ref-age-ms": 10000000}},
+    "metadata-log": [
+        {"metadata-file": "s3://bucket/.../v1.json", "timestamp-ms": 1515100}
+    ],
+    "refs": {
+        "test": {
+            "snapshot-id": 3051729675574597004,
+            "type": "tag",
+            "max-ref-age-ms": 10000000,
+        }
+    },
 }
 
 
@@ -803,9 +1006,13 @@ def example_table_metadata_v2() -> Dict[str, Any]:
 def metadata_location(tmp_path_factory: pytest.TempPathFactory) -> str:
     from pyiceberg.io.pyarrow import PyArrowFileIO
 
-    metadata_location = str(tmp_path_factory.mktemp("metadata") / f"{uuid.uuid4()}.metadata.json")
+    metadata_location = str(
+        tmp_path_factory.mktemp("metadata") / f"{uuid.uuid4()}.metadata.json"
+    )
     metadata = TableMetadataV2(**EXAMPLE_TABLE_METADATA_V2)
-    ToOutputFile.table_metadata(metadata, PyArrowFileIO().new_output(location=metadata_location), overwrite=True)
+    ToOutputFile.table_metadata(
+        metadata, PyArrowFileIO().new_output(location=metadata_location), overwrite=True
+    )
     return metadata_location
 
 
@@ -813,9 +1020,13 @@ def metadata_location(tmp_path_factory: pytest.TempPathFactory) -> str:
 def metadata_location_gz(tmp_path_factory: pytest.TempPathFactory) -> str:
     from pyiceberg.io.pyarrow import PyArrowFileIO
 
-    metadata_location = str(tmp_path_factory.mktemp("metadata") / f"{uuid.uuid4()}.gz.metadata.json")
+    metadata_location = str(
+        tmp_path_factory.mktemp("metadata") / f"{uuid.uuid4()}.gz.metadata.json"
+    )
     metadata = TableMetadataV2(**EXAMPLE_TABLE_METADATA_V2)
-    ToOutputFile.table_metadata(metadata, PyArrowFileIO().new_output(location=metadata_location), overwrite=True)
+    ToOutputFile.table_metadata(
+        metadata, PyArrowFileIO().new_output(location=metadata_location), overwrite=True
+    )
     return metadata_location
 
 
@@ -1082,7 +1293,12 @@ manifest_file_records_v1 = [
         "existing_data_files_count": 0,
         "deleted_data_files_count": 0,
         "partitions": [
-            {"contains_null": True, "contains_nan": False, "lower_bound": b"\x01\x00\x00\x00", "upper_bound": b"\x02\x00\x00\x00"}
+            {
+                "contains_null": True,
+                "contains_nan": False,
+                "lower_bound": b"\x01\x00\x00\x00",
+                "upper_bound": b"\x02\x00\x00\x00",
+            }
         ],
         "added_rows_count": 237993,
         "existing_rows_count": 0,
@@ -1106,7 +1322,12 @@ manifest_file_records_v2 = [
         "existing_rows_count": 0,
         "deleted_rows_count": 0,
         "partitions": [
-            {"contains_null": True, "contains_nan": False, "lower_bound": b"\x01\x00\x00\x00", "upper_bound": b"\x02\x00\x00\x00"}
+            {
+                "contains_null": True,
+                "contains_nan": False,
+                "lower_bound": b"\x01\x00\x00\x00",
+                "upper_bound": b"\x02\x00\x00\x00",
+            }
         ],
         "key_metadata": b"\x19\x25",
     }
@@ -1119,9 +1340,24 @@ def avro_schema_manifest_file_v1() -> Dict[str, Any]:
         "type": "record",
         "name": "manifest_file",
         "fields": [
-            {"name": "manifest_path", "type": "string", "doc": "Location URI with FS scheme", "field-id": 500},
-            {"name": "manifest_length", "type": "long", "doc": "Total file size in bytes", "field-id": 501},
-            {"name": "partition_spec_id", "type": "int", "doc": "Spec ID used to write", "field-id": 502},
+            {
+                "name": "manifest_path",
+                "type": "string",
+                "doc": "Location URI with FS scheme",
+                "field-id": 500,
+            },
+            {
+                "name": "manifest_length",
+                "type": "long",
+                "doc": "Total file size in bytes",
+                "field-id": 501,
+            },
+            {
+                "name": "partition_spec_id",
+                "type": "int",
+                "doc": "Spec ID used to write",
+                "field-id": 502,
+            },
             {
                 "name": "added_snapshot_id",
                 "type": ["null", "long"],
@@ -1196,7 +1432,13 @@ def avro_schema_manifest_file_v1() -> Dict[str, Any]:
                 "default": None,
                 "field-id": 507,
             },
-            {"name": "added_rows_count", "type": ["null", "long"], "doc": "Added rows count", "default": None, "field-id": 512},
+            {
+                "name": "added_rows_count",
+                "type": ["null", "long"],
+                "doc": "Added rows count",
+                "default": None,
+                "field-id": 512,
+            },
             {
                 "name": "existing_rows_count",
                 "type": ["null", "long"],
@@ -1221,10 +1463,30 @@ def avro_schema_manifest_file_v2() -> Dict[str, Any]:
         "type": "record",
         "name": "manifest_file",
         "fields": [
-            {"name": "manifest_path", "type": "string", "doc": "Location URI with FS scheme", "field-id": 500},
-            {"name": "manifest_length", "type": "long", "doc": "Total file size in bytes", "field-id": 501},
-            {"name": "partition_spec_id", "type": "int", "doc": "Spec ID used to write", "field-id": 502},
-            {"name": "content", "type": "int", "doc": "Contents of the manifest: 0=data, 1=deletes", "field-id": 517},
+            {
+                "name": "manifest_path",
+                "type": "string",
+                "doc": "Location URI with FS scheme",
+                "field-id": 500,
+            },
+            {
+                "name": "manifest_length",
+                "type": "long",
+                "doc": "Total file size in bytes",
+                "field-id": 501,
+            },
+            {
+                "name": "partition_spec_id",
+                "type": "int",
+                "doc": "Spec ID used to write",
+                "field-id": 502,
+            },
+            {
+                "name": "content",
+                "type": "int",
+                "doc": "Contents of the manifest: 0=data, 1=deletes",
+                "field-id": 517,
+            },
             {
                 "name": "sequence_number",
                 "type": ["null", "long"],
@@ -1237,13 +1499,48 @@ def avro_schema_manifest_file_v2() -> Dict[str, Any]:
                 "doc": "Lowest sequence number in the manifest",
                 "field-id": 516,
             },
-            {"name": "added_snapshot_id", "type": "long", "doc": "Snapshot ID that added the manifest", "field-id": 503},
-            {"name": "added_files_count", "type": "int", "doc": "Added entry count", "field-id": 504},
-            {"name": "existing_files_count", "type": "int", "doc": "Existing entry count", "field-id": 505},
-            {"name": "deleted_files_count", "type": "int", "doc": "Deleted entry count", "field-id": 506},
-            {"name": "added_rows_count", "type": "long", "doc": "Added rows count", "field-id": 512},
-            {"name": "existing_rows_count", "type": "long", "doc": "Existing rows count", "field-id": 513},
-            {"name": "deleted_rows_count", "type": "long", "doc": "Deleted rows count", "field-id": 514},
+            {
+                "name": "added_snapshot_id",
+                "type": "long",
+                "doc": "Snapshot ID that added the manifest",
+                "field-id": 503,
+            },
+            {
+                "name": "added_files_count",
+                "type": "int",
+                "doc": "Added entry count",
+                "field-id": 504,
+            },
+            {
+                "name": "existing_files_count",
+                "type": "int",
+                "doc": "Existing entry count",
+                "field-id": 505,
+            },
+            {
+                "name": "deleted_files_count",
+                "type": "int",
+                "doc": "Deleted entry count",
+                "field-id": 506,
+            },
+            {
+                "name": "added_rows_count",
+                "type": "long",
+                "doc": "Added rows count",
+                "field-id": 512,
+            },
+            {
+                "name": "existing_rows_count",
+                "type": "long",
+                "doc": "Existing rows count",
+                "field-id": 513,
+            },
+            {
+                "name": "deleted_rows_count",
+                "type": "long",
+                "doc": "Deleted rows count",
+                "field-id": 514,
+            },
             {
                 "name": "partitions",
                 "type": [
@@ -1301,14 +1598,24 @@ def avro_schema_manifest_entry() -> Dict[str, Any]:
         "name": "manifest_entry",
         "fields": [
             {"name": "status", "type": "int", "field-id": 0},
-            {"name": "snapshot_id", "type": ["null", "long"], "default": None, "field-id": 1},
+            {
+                "name": "snapshot_id",
+                "type": ["null", "long"],
+                "default": None,
+                "field-id": 1,
+            },
             {
                 "name": "data_file",
                 "type": {
                     "type": "record",
                     "name": "r2",
                     "fields": [
-                        {"name": "file_path", "type": "string", "doc": "Location URI with FS scheme", "field-id": 100},
+                        {
+                            "name": "file_path",
+                            "type": "string",
+                            "doc": "Location URI with FS scheme",
+                            "field-id": 100,
+                        },
                         {
                             "name": "file_format",
                             "type": "string",
@@ -1321,20 +1628,42 @@ def avro_schema_manifest_entry() -> Dict[str, Any]:
                                 "type": "record",
                                 "name": "r102",
                                 "fields": [
-                                    {"field-id": 1000, "default": None, "name": "VendorID", "type": ["null", "int"]},
+                                    {
+                                        "field-id": 1000,
+                                        "default": None,
+                                        "name": "VendorID",
+                                        "type": ["null", "int"],
+                                    },
                                     {
                                         "field-id": 1001,
                                         "default": None,
                                         "name": "tpep_pickup_datetime",
-                                        "type": ["null", {"type": "int", "logicalType": "date"}],
+                                        "type": [
+                                            "null",
+                                            {"type": "int", "logicalType": "date"},
+                                        ],
                                     },
                                 ],
                             },
                             "field-id": 102,
                         },
-                        {"name": "record_count", "type": "long", "doc": "Number of records in the file", "field-id": 103},
-                        {"name": "file_size_in_bytes", "type": "long", "doc": "Total file size in bytes", "field-id": 104},
-                        {"name": "block_size_in_bytes", "type": "long", "field-id": 105},
+                        {
+                            "name": "record_count",
+                            "type": "long",
+                            "doc": "Number of records in the file",
+                            "field-id": 103,
+                        },
+                        {
+                            "name": "file_size_in_bytes",
+                            "type": "long",
+                            "doc": "Total file size in bytes",
+                            "field-id": 104,
+                        },
+                        {
+                            "name": "block_size_in_bytes",
+                            "type": "long",
+                            "field-id": 105,
+                        },
                         {
                             "name": "column_sizes",
                             "type": [
@@ -1345,8 +1674,16 @@ def avro_schema_manifest_entry() -> Dict[str, Any]:
                                         "type": "record",
                                         "name": "k117_v118",
                                         "fields": [
-                                            {"name": "key", "type": "int", "field-id": 117},
-                                            {"name": "value", "type": "long", "field-id": 118},
+                                            {
+                                                "name": "key",
+                                                "type": "int",
+                                                "field-id": 117,
+                                            },
+                                            {
+                                                "name": "value",
+                                                "type": "long",
+                                                "field-id": 118,
+                                            },
                                         ],
                                     },
                                     "logicalType": "map",
@@ -1366,8 +1703,16 @@ def avro_schema_manifest_entry() -> Dict[str, Any]:
                                         "type": "record",
                                         "name": "k119_v120",
                                         "fields": [
-                                            {"name": "key", "type": "int", "field-id": 119},
-                                            {"name": "value", "type": "long", "field-id": 120},
+                                            {
+                                                "name": "key",
+                                                "type": "int",
+                                                "field-id": 119,
+                                            },
+                                            {
+                                                "name": "value",
+                                                "type": "long",
+                                                "field-id": 120,
+                                            },
                                         ],
                                     },
                                     "logicalType": "map",
@@ -1387,8 +1732,16 @@ def avro_schema_manifest_entry() -> Dict[str, Any]:
                                         "type": "record",
                                         "name": "k121_v122",
                                         "fields": [
-                                            {"name": "key", "type": "int", "field-id": 121},
-                                            {"name": "value", "type": "long", "field-id": 122},
+                                            {
+                                                "name": "key",
+                                                "type": "int",
+                                                "field-id": 121,
+                                            },
+                                            {
+                                                "name": "value",
+                                                "type": "long",
+                                                "field-id": 122,
+                                            },
                                         ],
                                     },
                                     "logicalType": "map",
@@ -1408,8 +1761,16 @@ def avro_schema_manifest_entry() -> Dict[str, Any]:
                                         "type": "record",
                                         "name": "k138_v139",
                                         "fields": [
-                                            {"name": "key", "type": "int", "field-id": 138},
-                                            {"name": "value", "type": "long", "field-id": 139},
+                                            {
+                                                "name": "key",
+                                                "type": "int",
+                                                "field-id": 138,
+                                            },
+                                            {
+                                                "name": "value",
+                                                "type": "long",
+                                                "field-id": 139,
+                                            },
                                         ],
                                     },
                                     "logicalType": "map",
@@ -1429,8 +1790,16 @@ def avro_schema_manifest_entry() -> Dict[str, Any]:
                                         "type": "record",
                                         "name": "k126_v127",
                                         "fields": [
-                                            {"name": "key", "type": "int", "field-id": 126},
-                                            {"name": "value", "type": "bytes", "field-id": 127},
+                                            {
+                                                "name": "key",
+                                                "type": "int",
+                                                "field-id": 126,
+                                            },
+                                            {
+                                                "name": "value",
+                                                "type": "bytes",
+                                                "field-id": 127,
+                                            },
                                         ],
                                     },
                                     "logicalType": "map",
@@ -1450,8 +1819,16 @@ def avro_schema_manifest_entry() -> Dict[str, Any]:
                                         "type": "record",
                                         "name": "k129_v130",
                                         "fields": [
-                                            {"name": "key", "type": "int", "field-id": 129},
-                                            {"name": "value", "type": "bytes", "field-id": 130},
+                                            {
+                                                "name": "key",
+                                                "type": "int",
+                                                "field-id": 129,
+                                            },
+                                            {
+                                                "name": "value",
+                                                "type": "bytes",
+                                                "field-id": 130,
+                                            },
                                         ],
                                     },
                                     "logicalType": "map",
@@ -1470,7 +1847,10 @@ def avro_schema_manifest_entry() -> Dict[str, Any]:
                         },
                         {
                             "name": "split_offsets",
-                            "type": ["null", {"type": "array", "items": "long", "element-id": 133}],
+                            "type": [
+                                "null",
+                                {"type": "array", "items": "long", "element-id": 133},
+                            ],
                             "doc": "Splittable offsets",
                             "default": None,
                             "field-id": 132,
@@ -1493,7 +1873,13 @@ def avro_schema_manifest_entry() -> Dict[str, Any]:
 @pytest.fixture(scope="session")
 def simple_struct() -> StructType:
     return StructType(
-        NestedField(id=1, name="required_field", field_type=StringType(), required=True, doc="this is a doc"),
+        NestedField(
+            id=1,
+            name="required_field",
+            field_type=StringType(),
+            required=True,
+            doc="this is a doc",
+        ),
         NestedField(id=2, name="optional_field", field_type=IntegerType()),
     )
 
@@ -1505,11 +1891,19 @@ def simple_list() -> ListType:
 
 @pytest.fixture(scope="session")
 def simple_map() -> MapType:
-    return MapType(key_id=19, key_type=StringType(), value_id=25, value_type=DoubleType(), value_required=False)
+    return MapType(
+        key_id=19,
+        key_type=StringType(),
+        value_id=25,
+        value_type=DoubleType(),
+        value_required=False,
+    )
 
 
 @pytest.fixture(scope="session")
-def generated_manifest_entry_file(avro_schema_manifest_entry: Dict[str, Any]) -> Generator[str, None, None]:
+def generated_manifest_entry_file(
+    avro_schema_manifest_entry: Dict[str, Any],
+) -> Generator[str, None, None]:
     from fastavro import parse_schema, writer
 
     parsed_schema = parse_schema(avro_schema_manifest_entry)
@@ -1561,7 +1955,9 @@ def generated_manifest_file_file_v2(
 def iceberg_manifest_entry_schema() -> Schema:
     return Schema(
         NestedField(field_id=0, name="status", field_type=IntegerType(), required=True),
-        NestedField(field_id=1, name="snapshot_id", field_type=LongType(), required=False),
+        NestedField(
+            field_id=1, name="snapshot_id", field_type=LongType(), required=False
+        ),
         NestedField(
             field_id=2,
             name="data_file",
@@ -1804,10 +2200,14 @@ def moto_endpoint_url(moto_server: "ThreadedMotoServer") -> str:
 
 
 @pytest.fixture(name="_s3", scope="function")
-def fixture_s3(_aws_credentials: None, moto_endpoint_url: str) -> Generator[boto3.client, None, None]:
+def fixture_s3(
+    _aws_credentials: None, moto_endpoint_url: str
+) -> Generator[boto3.client, None, None]:
     """Yield a mocked S3 client."""
     with mock_aws():
-        yield boto3.client("s3", region_name="us-east-1", endpoint_url=moto_endpoint_url)
+        yield boto3.client(
+            "s3", region_name="us-east-1", endpoint_url=moto_endpoint_url
+        )
 
 
 @pytest.fixture(name="_glue")
@@ -1825,7 +2225,9 @@ def fixture_dynamodb(_aws_credentials: None) -> Generator[boto3.client, None, No
 
 
 @pytest.fixture
-def adlfs_fsspec_fileio(request: pytest.FixtureRequest) -> Generator[FsspecFileIO, None, None]:
+def adlfs_fsspec_fileio(
+    request: pytest.FixtureRequest,
+) -> Generator[FsspecFileIO, None, None]:
     from azure.storage.blob import BlobServiceClient
 
     azurite_url = request.config.getoption("--adlfs.endpoint")
@@ -1909,11 +2311,17 @@ def get_bucket_name() -> str:
     """Set the environment variable AWS_TEST_BUCKET for a default bucket to test."""
     bucket_name = os.getenv("AWS_TEST_BUCKET")
     if bucket_name is None:
-        raise ValueError("Please specify a bucket to run the test by setting environment variable AWS_TEST_BUCKET")
+        raise ValueError(
+            "Please specify a bucket to run the test by setting environment variable AWS_TEST_BUCKET"
+        )
     return bucket_name
 
 
-def get_s3_path(bucket_name: str, database_name: Optional[str] = None, table_name: Optional[str] = None) -> str:
+def get_s3_path(
+    bucket_name: str,
+    database_name: Optional[str] = None,
+    table_name: Optional[str] = None,
+) -> str:
     result_path = f"s3://{bucket_name}"
     if database_name is not None:
         result_path += f"/{database_name}.db"
@@ -1959,7 +2367,9 @@ def data_file(table_schema_simple: Schema, tmp_path: str) -> str:
 @pytest.fixture
 def example_task(data_file: str) -> FileScanTask:
     return FileScanTask(
-        data_file=DataFile(file_path=data_file, file_format=FileFormat.PARQUET, file_size_in_bytes=1925),
+        data_file=DataFile(
+            file_path=data_file, file_format=FileFormat.PARQUET, file_size_in_bytes=1925
+        ),
     )
 
 
@@ -1994,17 +2404,26 @@ def table_v2(example_table_metadata_v2: Dict[str, Any]) -> Table:
 
 @pytest.fixture
 def bound_reference_str() -> BoundReference[str]:
-    return BoundReference(field=NestedField(1, "field", StringType(), required=False), accessor=Accessor(position=0, inner=None))
+    return BoundReference(
+        field=NestedField(1, "field", StringType(), required=False),
+        accessor=Accessor(position=0, inner=None),
+    )
 
 
 @pytest.fixture
 def bound_reference_binary() -> BoundReference[str]:
-    return BoundReference(field=NestedField(1, "field", BinaryType(), required=False), accessor=Accessor(position=0, inner=None))
+    return BoundReference(
+        field=NestedField(1, "field", BinaryType(), required=False),
+        accessor=Accessor(position=0, inner=None),
+    )
 
 
 @pytest.fixture
 def bound_reference_uuid() -> BoundReference[str]:
-    return BoundReference(field=NestedField(1, "field", UUIDType(), required=False), accessor=Accessor(position=0, inner=None))
+    return BoundReference(
+        field=NestedField(1, "field", UUIDType(), required=False),
+        accessor=Accessor(position=0, inner=None),
+    )
 
 
 @pytest.fixture(scope="session")
@@ -2056,12 +2475,23 @@ def spark() -> "SparkSession":
     spark = (
         SparkSession.builder.appName("PyIceberg integration test")
         .config("spark.sql.session.timeZone", "UTC")
-        .config("spark.sql.extensions", "org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions")
-        .config("spark.sql.catalog.integration", "org.apache.iceberg.spark.SparkCatalog")
-        .config("spark.sql.catalog.integration.catalog-impl", "org.apache.iceberg.rest.RESTCatalog")
+        .config(
+            "spark.sql.extensions",
+            "org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions",
+        )
+        .config(
+            "spark.sql.catalog.integration", "org.apache.iceberg.spark.SparkCatalog"
+        )
+        .config(
+            "spark.sql.catalog.integration.catalog-impl",
+            "org.apache.iceberg.rest.RESTCatalog",
+        )
         .config("spark.sql.catalog.integration.cache-enabled", "false")
         .config("spark.sql.catalog.integration.uri", "http://localhost:8181")
-        .config("spark.sql.catalog.integration.io-impl", "org.apache.iceberg.aws.s3.S3FileIO")
+        .config(
+            "spark.sql.catalog.integration.io-impl",
+            "org.apache.iceberg.aws.s3.S3FileIO",
+        )
         .config("spark.sql.catalog.integration.warehouse", "s3://warehouse/wh/")
         .config("spark.sql.catalog.integration.s3.endpoint", "http://localhost:9000")
         .config("spark.sql.catalog.integration.s3.path-style-access", "true")
@@ -2090,7 +2520,11 @@ TEST_DATA_WITH_NULL = {
     "float": [0.0, None, 0.9],
     "double": [0.0, None, 0.9],
     # 'time': [1_000_000, None, 3_000_000],  # Example times: 1s, none, and 3s past midnight #Spark does not support time fields
-    "timestamp": [datetime(2023, 1, 1, 19, 25, 00), None, datetime(2023, 3, 1, 19, 25, 00)],
+    "timestamp": [
+        datetime(2023, 1, 1, 19, 25, 00),
+        None,
+        datetime(2023, 3, 1, 19, 25, 00),
+    ],
     "timestamptz": [
         datetime(2023, 1, 1, 19, 25, 00, tzinfo=timezone.utc),
         None,
@@ -2114,26 +2548,28 @@ TEST_DATA_WITH_NULL = {
 def pa_schema() -> "pa.Schema":
     import pyarrow as pa
 
-    return pa.schema([
-        ("bool", pa.bool_()),
-        ("string", pa.string()),
-        ("string_long", pa.string()),
-        ("int", pa.int32()),
-        ("long", pa.int64()),
-        ("float", pa.float32()),
-        ("double", pa.float64()),
-        # Not supported by Spark
-        # ("time", pa.time64('us')),
-        ("timestamp", pa.timestamp(unit="us")),
-        ("timestamptz", pa.timestamp(unit="us", tz="UTC")),
-        ("date", pa.date32()),
-        # Not supported by Spark
-        # ("time", pa.time64("us")),
-        # Not natively supported by Arrow
-        # ("uuid", pa.fixed(16)),
-        ("binary", pa.large_binary()),
-        ("fixed", pa.binary(16)),
-    ])
+    return pa.schema(
+        [
+            ("bool", pa.bool_()),
+            ("string", pa.string()),
+            ("string_long", pa.string()),
+            ("int", pa.int32()),
+            ("long", pa.int64()),
+            ("float", pa.float32()),
+            ("double", pa.float64()),
+            # Not supported by Spark
+            # ("time", pa.time64('us')),
+            ("timestamp", pa.timestamp(unit="us")),
+            ("timestamptz", pa.timestamp(unit="us", tz="UTC")),
+            ("date", pa.date32()),
+            # Not supported by Spark
+            # ("time", pa.time64("us")),
+            # Not natively supported by Arrow
+            # ("uuid", pa.fixed(16)),
+            ("binary", pa.large_binary()),
+            ("fixed", pa.binary(16)),
+        ]
+    )
 
 
 @pytest.fixture(scope="session")
@@ -2167,7 +2603,14 @@ def arrow_table_date_timestamps() -> "pa.Table":
 
     return pa.Table.from_pydict(
         {
-            "date": [date(2023, 12, 31), date(2024, 1, 1), date(2024, 1, 31), date(2024, 2, 1), date(2024, 2, 1), None],
+            "date": [
+                date(2023, 12, 31),
+                date(2024, 1, 1),
+                date(2024, 1, 31),
+                date(2024, 2, 1),
+                date(2024, 2, 1),
+                None,
+            ],
             "timestamp": [
                 datetime(2023, 12, 31, 0, 0, 0),
                 datetime(2024, 1, 1, 0, 0, 0),
@@ -2185,11 +2628,13 @@ def arrow_table_date_timestamps() -> "pa.Table":
                 None,
             ],
         },
-        schema=pa.schema([
-            ("date", pa.date32()),
-            ("timestamp", pa.timestamp(unit="us")),
-            ("timestamptz", pa.timestamp(unit="us", tz="UTC")),
-        ]),
+        schema=pa.schema(
+            [
+                ("date", pa.date32()),
+                ("timestamp", pa.timestamp(unit="us")),
+                ("timestamptz", pa.timestamp(unit="us", tz="UTC")),
+            ]
+        ),
     )
 
 
@@ -2198,6 +2643,10 @@ def arrow_table_date_timestamps_schema() -> Schema:
     """Pyarrow table Schema with only date, timestamp and timestamptz values."""
     return Schema(
         NestedField(field_id=1, name="date", field_type=DateType(), required=False),
-        NestedField(field_id=2, name="timestamp", field_type=TimestampType(), required=False),
-        NestedField(field_id=3, name="timestamptz", field_type=TimestamptzType(), required=False),
+        NestedField(
+            field_id=2, name="timestamp", field_type=TimestampType(), required=False
+        ),
+        NestedField(
+            field_id=3, name="timestamptz", field_type=TimestamptzType(), required=False
+        ),
     )
