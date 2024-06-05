@@ -1,6 +1,6 @@
 from typing import Dict, Optional
 
-from fastapi import Body, FastAPI, HTTPException, Header, Path, Query
+from fastapi import Body, FastAPI, HTTPException, Path, Query
 from pydantic import BaseModel, Field, StrictStr
 
 from pyiceberg.table import TableIdentifier
@@ -125,8 +125,6 @@ def create_namespace(
     response_model_by_alias=True,
 )
 def list_namespaces(
-    # page_token: str = Query(None, description="", alias="pageToken"),
-    # page_size: int = Query(None, description="For servers that support pagination, this signals an upper bound of the number of results that a client will receive. For servers that do not support pagination, clients may receive results larger than the indicated &#x60;pageSize&#x60;.", alias="pageSize", ge=1),
     parent: str = Query(
         None,
         description="An optional namespace, underneath which to list namespaces. If not provided or empty, all top-level namespaces should be listed. If parent is a multipart namespace, the parts must be separated by the unit separator (&#x60;0x1F&#x60;) byte.",
@@ -257,8 +255,6 @@ def list_tables(
         ...,
         description="A namespace identifier as a single string. Multipart namespace parts should be separated by the unit separator (&#x60;0x1F&#x60;) byte.",
     ),
-    # page_token: str = Query(None, description="", alias="pageToken"),
-    # page_size: int = Query(None, description="For servers that support pagination, this signals an upper bound of the number of results that a client will receive. For servers that do not support pagination, clients may receive results larger than the indicated &#x60;pageSize&#x60;.", alias="pageSize", ge=1),
 ) -> ListTablesResponse:
     """Return all table identifiers under this namespace"""
     try:
@@ -282,7 +278,7 @@ class LoadTableResult(BaseModel):
     metadata_location: Optional[StrictStr] = Field(
         default=None,
         description="May be null if the table is staged as part of a transaction",
-    )  # , alias="metadata-location")
+    )
     metadata: TableMetadata
     config: Optional[Dict[str, StrictStr]] = None
 
@@ -298,7 +294,6 @@ def create_table(
         ...,
         description="A namespace identifier as a single string. Multipart namespace parts should be separated by the unit separator (&#x60;0x1F&#x60;) byte.",
     ),
-    # x_iceberg_access_delegation: str = Header(None, description="Optional signal to the server that the client supports delegated access via a comma-separated list of access mechanisms.  The server may choose to supply access via any or none of the requested mechanisms.  Specific properties and handling for &#x60;vended-credentials&#x60; is documented in the &#x60;LoadTableResult&#x60; schema section of this spec document.  The protocol and specification for &#x60;remote-signing&#x60; is documented in  the &#x60;s3-signer-open-api.yaml&#x60; OpenApi spec in the &#x60;aws&#x60; module. "),
     create_table_request: CreateTableRequest = Body(None, description=""),
 ) -> LoadTableResult:
     """Create a table or start a create transaction, like atomic CTAS.  If &#x60;stage-create&#x60; is false, the table is created immediately.  If &#x60;stage-create&#x60; is true, the table is not created, but table metadata is initialized and returned. The service should prepare as needed for a commit to the table commit endpoint to complete the create transaction. The client uses the returned metadata to begin a transaction. To commit the transaction, the client sends all create and subsequent changes to the table commit route. Changes from the table create operation include changes like AddSchemaUpdate and SetCurrentSchemaUpdate that set the initial table state."""
@@ -372,15 +367,6 @@ def load_table(
         description="A namespace identifier as a single string. Multipart namespace parts should be separated by the unit separator (&#x60;0x1F&#x60;) byte.",
     ),
     table: str = Path(..., description="A table name"),
-    x_iceberg_access_delegation: str = Header(
-        None,
-        description="Optional signal to the server that the client supports delegated access via a comma-separated list of access mechanisms.  The server may choose to supply access via any or none of the requested mechanisms.  Specific properties and handling for &#x60;vended-credentials&#x60; is documented in the &#x60;LoadTableResult&#x60; schema section of this spec document.  The protocol and specification for &#x60;remote-signing&#x60; is documented in  the &#x60;s3-signer-open-api.yaml&#x60; OpenApi spec in the &#x60;aws&#x60; module. ",
-    ),
-    snapshots: str = Query(
-        None,
-        description="The snapshots to return in the body of the metadata. Setting the value to &#x60;all&#x60; would return the full set of snapshots currently valid for the table. Setting the value to &#x60;refs&#x60; would load all snapshots referenced by branches or tags. Default if no param is provided is &#x60;all&#x60;.",
-        alias="snapshots",
-    ),
 ) -> LoadTableResult:
     """Load a table from the catalog.  The response contains both configuration and table metadata. The configuration, if non-empty is used as additional configuration for the table that overrides catalog configuration. For example, this configuration may change the FileIO implementation to be used for the table.  The response also contains the table&#39;s full metadata, matching the table metadata JSON file.  The catalog configuration may contain credentials that should be used for subsequent requests for the table. The configuration key \&quot;token\&quot; is used to pass an access token to be used as a bearer token for table requests. Otherwise, a token may be passed using a RFC 8693 token type as a configuration key. For example, \&quot;urn:ietf:params:oauth:token-type:jwt&#x3D;&lt;JWT-token&gt;\&quot;."""
     try:
@@ -437,11 +423,6 @@ def drop_table(
         description="A namespace identifier as a single string. Multipart namespace parts should be separated by the unit separator (&#x60;0x1F&#x60;) byte.",
     ),
     table: str = Path(..., description="A table name"),
-    purge_requested: bool = Query(
-        False,
-        description="Whether the user requested to purge the underlying table&#39;s data and metadata",
-        alias="purgeRequested",
-    ),
 ) -> None:
     """Remove a table from the catalog"""
     try:

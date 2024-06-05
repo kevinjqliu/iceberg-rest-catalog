@@ -75,5 +75,5 @@ class CommitTableResponse(BaseModel):
     CommitTableResponse
     """  # noqa: E501
 
-    metadata_location: StrictStr = Field(alias="metadata-location")
+    metadata_location: StrictStr = Field()
     metadata: TableMetadata
