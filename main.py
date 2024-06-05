@@ -148,10 +148,10 @@ def create_namespace(
     # ),
 ) -> CreateNamespaceResponse:
     """Create a namespace, with an optional set of properties. The server might also add properties, such as &#x60;last_modified_time&#x60; etc."""
-    namespace = "".join(create_namespace_request.namespace)
+    namespace = tuple(create_namespace_request.namespace)
     properties = create_namespace_request.properties
     catalog.create_namespace(namespace, properties)
-    return CreateNamespaceResponse(namespace=create_namespace_request.namespace, properties=create_namespace_request.properties)
+    return CreateNamespaceResponse(namespace=namespace, properties=properties)
 
 class ListNamespacesResponse(BaseModel):
     """
