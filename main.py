@@ -8,7 +8,7 @@ from pyiceberg.table.metadata import TableMetadata
 from pyiceberg.schema import Schema
 from pyiceberg.partitioning import PartitionSpec
 from pyiceberg.table.sorting import SortOrder
-from pyiceberg.exceptions import TableAlreadyExistsError, NoSuchTableError, NamespaceAlreadyExistsError, NoSuchNamespaceError
+from pyiceberg.exceptions import TableAlreadyExistsError, NoSuchTableError, NamespaceAlreadyExistsError, NoSuchNamespaceError, NamespaceNotEmptyError
 
 app = FastAPI()
 
@@ -270,7 +270,12 @@ def drop_namespace(
     #     get_token_BearerAuth
     # ),
 ) -> None:
-    catalog.drop_namespace(namespace)
+    try:
+        catalog.drop_namespace(namespace)
+    except NoSuchNamespaceError:
+        raise HTTPException(status_code=404, detail=f"Namespace does not exist: {(namespace,)}")
+    except NamespaceNotEmptyError:
+        raise HTTPException(status_code=409, detail=f"Namespace is not empty: {(namespace,)}")
 
 
 @app.head(
