@@ -5,7 +5,6 @@ from pyiceberg.schema import Schema
 from pyiceberg.types import FixedType, NestedField, UUIDType
 
 import os
-import pandas as pd
 
 # run with `python tests/pyspark_test.py`
 
@@ -36,6 +35,7 @@ spark = (
     .config("spark.sql.catalogImplementation", "in-memory")
     .getOrCreate()
 )
+spark.sparkContext.setLogLevel("ERROR")
 
 # .config("spark.sql.catalog.spark_catalog", "org.apache.iceberg.spark.SparkSessionCatalog") \
 # .config("spark.sql.catalog.spark_catalog.type", "hadoop") \
@@ -93,4 +93,21 @@ tbl = catalog.load_table("default.test_uuid_and_fixed_unpartitioned")
 assert tbl.schema() == schema
 df = tbl.scan().to_arrow().to_pandas()
 assert len(df) == 5
-assert b'1234567890123456789012345' in df['fixed_col'].to_list()
+assert b"1234567890123456789012345" in df["fixed_col"].to_list()
+
+# create a table with spark sql
+spark.sql(
+    f"""
+    CREATE OR REPLACE TABLE {catalog_name}.default.test_null_nan
+    USING iceberg
+    AS SELECT
+    1            AS idx,
+    float('NaN') AS col_numeric
+UNION ALL SELECT
+    2            AS idx,
+    null         AS col_numeric
+UNION ALL SELECT
+    3            AS idx,
+    1            AS col_numeric
+"""
+)

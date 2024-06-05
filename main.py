@@ -1,4 +1,4 @@
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, Union
 
 from fastapi import Body, FastAPI, HTTPException, Path, Query
 from pydantic import BaseModel, Field, StrictStr
@@ -14,6 +14,7 @@ from pyiceberg.exceptions import (
     CommitFailedException,
 )
 from pyiceberg.table.sorting import UNSORTED_SORT_ORDER
+from pyiceberg.typedef import Identifier
 
 from models.config import CatalogConfig
 from models.request import (
@@ -44,12 +45,12 @@ catalog = SqlCatalog(
     **{
         "uri": f"sqlite:///{warehouse_path}/pyiceberg_catalog.db",
         # use local file system for pytest
-        "warehouse": f"file://{warehouse_path}",
-        # use s3 for spark test 
-        # "warehouse": "s3://warehouse/rest/",
-        # "s3.endpoint": "http://localhost:9000",
-        # "s3.access-key-id": "admin",
-        # "s3.secret-access-key": "password",
+        # "warehouse": f"file://{warehouse_path}",
+        # use s3 for spark test
+        "warehouse": "s3://warehouse/rest/",
+        "s3.endpoint": "http://localhost:9000",
+        "s3.access-key-id": "admin",
+        "s3.secret-access-key": "password",
     },
 )
 # recreate the db
@@ -286,8 +287,47 @@ def create_table(
     create_table_request: CreateTableRequest = Body(None, description=""),
 ) -> LoadTableResult:
     """Create a table or start a create transaction, like atomic CTAS.  If &#x60;stage-create&#x60; is false, the table is created immediately.  If &#x60;stage-create&#x60; is true, the table is not created, but table metadata is initialized and returned. The service should prepare as needed for a commit to the table commit endpoint to complete the create transaction. The client uses the returned metadata to begin a transaction. To commit the transaction, the client sends all create and subsequent changes to the table commit route. Changes from the table create operation include changes like AddSchemaUpdate and SetCurrentSchemaUpdate that set the initial table state."""
+    identifier = (namespace, create_table_request.name)
+    if create_table_request.stage_create:
+        return _stage_create_table(identifier, create_table_request)
+    else:
+        return _create_table(identifier, create_table_request)
+
+
+def _stage_create_table(
+    identifier: Union[str, Identifier], create_table_request: CreateTableRequest
+) -> LoadTableResult:
     try:
-        identifier = (namespace, create_table_request.name)
+        sort_order = (
+            create_table_request.write_order
+            if create_table_request.write_order is not None
+            else UNSORTED_SORT_ORDER
+        )
+        tbl = catalog.create_table(
+            identifier=identifier,
+            schema=create_table_request.schema,
+            location=create_table_request.location,
+            partition_spec=create_table_request.partition_spec,
+            sort_order=sort_order,
+            properties=create_table_request.properties,
+        )
+        # (TODO): temp fix, create/then remove table
+        catalog.drop_table(identifier)
+    except TableAlreadyExistsError:
+        raise HTTPException(
+            status_code=409, detail=f"Table already exists: {identifier}"
+        )
+    return LoadTableResult(
+        metadata_location=tbl.metadata_location,
+        metadata=tbl.metadata,
+        config=tbl.properties,
+    )
+
+
+def _create_table(
+    identifier: Union[str, Identifier], create_table_request: CreateTableRequest
+) -> LoadTableResult:
+    try:
         sort_order = (
             create_table_request.write_order
             if create_table_request.write_order is not None
