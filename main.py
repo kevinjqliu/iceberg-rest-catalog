@@ -1,9 +1,9 @@
 from typing import Dict, List, Optional, Union
 
-from fastapi import Body, FastAPI, Path, Query
+from fastapi import Body, FastAPI, Header, Path, Query
 from pydantic import BaseModel, Field, StrictBool, StrictStr
 
-from pyiceberg.table import TableIdentifier
+from pyiceberg.table import TableIdentifier, TableRequirement, TableUpdate
 from pyiceberg.table.metadata import TableMetadata
 from pyiceberg.schema import Schema
 from pyiceberg.partitioning import PartitionSpec
@@ -495,6 +495,151 @@ def register_table(
     return LoadTableResult(metadata_location=tbl.metadata_location, metadata=tbl.metadata, config=tbl.properties)
 
 # /v1/{prefix}/namespaces/{namespace}/tables/{table} (GET/POST/DELETE/HEAD)
+@app.get(
+    "/v1/namespaces/{namespace}/tables/{table}",
+    # responses={
+    #     200: {"model": LoadTableResult, "description": "Table metadata result when loading a table"},
+    #     400: {"model": IcebergErrorResponse, "description": "Indicates a bad request error. It could be caused by an unexpected request body format or other forms of request validation failure, such as invalid json. Usually serves application/json content, although in some cases simple text/plain content might be returned by the server&#39;s middleware."},
+    #     401: {"model": IcebergErrorResponse, "description": "Unauthorized. Authentication is required and has failed or has not yet been provided."},
+    #     403: {"model": IcebergErrorResponse, "description": "Forbidden. Authenticated user does not have the necessary permissions."},
+    #     404: {"model": IcebergErrorResponse, "description": "Not Found - NoSuchTableException, table to load does not exist"},
+    #     419: {"model": IcebergErrorResponse, "description": "Credentials have timed out. If possible, the client should refresh credentials and retry."},
+    #     503: {"model": IcebergErrorResponse, "description": "The service is not ready to handle the request. The client should wait and retry.  The service may additionally send a Retry-After header to indicate when to retry."},
+    #     500: {"model": IcebergErrorResponse, "description": "A server-side problem that might not be addressable from the client side. Used for server 500 errors without more specific documentation in individual routes."},
+    # },
+    tags=["Catalog API"],
+    summary="Load a table from the catalog",
+    response_model_by_alias=True,
+)
+def load_table(
+    # prefix: str = Path(..., description="An optional prefix in the path"),
+    namespace: str = Path(..., description="A namespace identifier as a single string. Multipart namespace parts should be separated by the unit separator (&#x60;0x1F&#x60;) byte."),
+    table: str = Path(..., description="A table name"),
+    x_iceberg_access_delegation: str = Header(None, description="Optional signal to the server that the client supports delegated access via a comma-separated list of access mechanisms.  The server may choose to supply access via any or none of the requested mechanisms.  Specific properties and handling for &#x60;vended-credentials&#x60; is documented in the &#x60;LoadTableResult&#x60; schema section of this spec document.  The protocol and specification for &#x60;remote-signing&#x60; is documented in  the &#x60;s3-signer-open-api.yaml&#x60; OpenApi spec in the &#x60;aws&#x60; module. "),
+    snapshots: str = Query(None, description="The snapshots to return in the body of the metadata. Setting the value to &#x60;all&#x60; would return the full set of snapshots currently valid for the table. Setting the value to &#x60;refs&#x60; would load all snapshots referenced by branches or tags. Default if no param is provided is &#x60;all&#x60;.", alias="snapshots"),
+    # token_OAuth2: TokenModel = Security(
+    #     get_token_OAuth2, scopes=["catalog"]
+    # ),
+    # token_BearerAuth: TokenModel = Security(
+    #     get_token_BearerAuth
+    # ),
+) -> LoadTableResult:
+    """Load a table from the catalog.  The response contains both configuration and table metadata. The configuration, if non-empty is used as additional configuration for the table that overrides catalog configuration. For example, this configuration may change the FileIO implementation to be used for the table.  The response also contains the table&#39;s full metadata, matching the table metadata JSON file.  The catalog configuration may contain credentials that should be used for subsequent requests for the table. The configuration key \&quot;token\&quot; is used to pass an access token to be used as a bearer token for table requests. Otherwise, a token may be passed using a RFC 8693 token type as a configuration key. For example, \&quot;urn:ietf:params:oauth:token-type:jwt&#x3D;&lt;JWT-token&gt;\&quot;."""
+    tbl = catalog.load_table(identifier=(namespace, table))
+    return LoadTableResult(metadata_location=tbl.metadata_location, metadata=tbl.metadata, config=tbl.properties)
+
+class CommitTableRequest(BaseModel):
+    """
+    CommitTableRequest
+    """ # noqa: E501
+    identifier: Optional[TableIdentifier] = None
+    requirements: List[TableRequirement]
+    updates: List[TableUpdate]
+
+class CommitTableResponse(BaseModel):
+    """
+    CommitTableResponse
+    """ # noqa: E501
+    metadata_location: StrictStr = Field(alias="metadata-location")
+    metadata: TableMetadata
+
+@app.post(
+    "/v1/namespaces/{namespace}/tables/{table}",
+    # responses={
+    #     200: {"model": CommitTableResponse, "description": "Response used when a table is successfully updated. The table metadata JSON is returned in the metadata field. The corresponding file location of table metadata must be returned in the metadata-location field. Clients can check whether metadata has changed by comparing metadata locations."},
+    #     400: {"model": IcebergErrorResponse, "description": "Indicates a bad request error. It could be caused by an unexpected request body format or other forms of request validation failure, such as invalid json. Usually serves application/json content, although in some cases simple text/plain content might be returned by the server&#39;s middleware."},
+    #     401: {"model": IcebergErrorResponse, "description": "Unauthorized. Authentication is required and has failed or has not yet been provided."},
+    #     403: {"model": IcebergErrorResponse, "description": "Forbidden. Authenticated user does not have the necessary permissions."},
+    #     404: {"model": IcebergErrorResponse, "description": "Not Found - NoSuchTableException, table to load does not exist"},
+    #     409: {"model": IcebergErrorResponse, "description": "Conflict - CommitFailedException, one or more requirements failed. The client may retry."},
+    #     419: {"model": IcebergErrorResponse, "description": "Credentials have timed out. If possible, the client should refresh credentials and retry."},
+    #     500: {"model": IcebergErrorResponse, "description": "An unknown server-side problem occurred; the commit state is unknown."},
+    #     503: {"model": IcebergErrorResponse, "description": "The service is not ready to handle the request. The client should wait and retry.  The service may additionally send a Retry-After header to indicate when to retry."},
+    #     502: {"model": IcebergErrorResponse, "description": "A gateway or proxy received an invalid response from the upstream server; the commit state is unknown."},
+    #     504: {"model": IcebergErrorResponse, "description": "A server-side gateway timeout occurred; the commit state is unknown."},
+    #     500: {"model": IcebergErrorResponse, "description": "A server-side problem that might not be addressable on the client."},
+    # },
+    tags=["Catalog API"],
+    summary="Commit updates to a table",
+    response_model_by_alias=True,
+)
+def update_table(
+    # prefix: str = Path(..., description="An optional prefix in the path"),
+    namespace: str = Path(..., description="A namespace identifier as a single string. Multipart namespace parts should be separated by the unit separator (&#x60;0x1F&#x60;) byte."),
+    table: str = Path(..., description="A table name"),
+    commit_table_request: CommitTableRequest = Body(None, description=""),
+    # token_OAuth2: TokenModel = Security(
+    #     get_token_OAuth2, scopes=["catalog"]
+    # ),
+    # token_BearerAuth: TokenModel = Security(
+    #     get_token_BearerAuth
+    # ),
+) -> CommitTableResponse:
+    """Commit updates to a table.  Commits have two parts, requirements and updates. Requirements are assertions that will be validated before attempting to make and commit changes. For example, &#x60;assert-ref-snapshot-id&#x60; will check that a named ref&#39;s snapshot ID has a certain value.  Updates are changes to make to table metadata. For example, after asserting that the current main ref is at the expected snapshot, a commit may add a new child snapshot and set the ref to the new snapshot id.  Create table transactions that are started by createTable with &#x60;stage-create&#x60; set to true are committed using this route. Transactions should include all changes to the table, including table initialization, like AddSchemaUpdate and SetCurrentSchemaUpdate. The &#x60;assert-create&#x60; requirement is used to ensure that the table was not created concurrently."""
+    return catalog._commit_table(commit_table_request)
+
+@app.delete(
+    "/v1/namespaces/{namespace}/tables/{table}",
+    # responses={
+    #     204: {"description": "Success, no content"},
+    #     400: {"model": IcebergErrorResponse, "description": "Indicates a bad request error. It could be caused by an unexpected request body format or other forms of request validation failure, such as invalid json. Usually serves application/json content, although in some cases simple text/plain content might be returned by the server&#39;s middleware."},
+    #     401: {"model": IcebergErrorResponse, "description": "Unauthorized. Authentication is required and has failed or has not yet been provided."},
+    #     403: {"model": IcebergErrorResponse, "description": "Forbidden. Authenticated user does not have the necessary permissions."},
+    #     404: {"model": IcebergErrorResponse, "description": "Not Found - NoSuchTableException, Table to drop does not exist"},
+    #     419: {"model": IcebergErrorResponse, "description": "Credentials have timed out. If possible, the client should refresh credentials and retry."},
+    #     503: {"model": IcebergErrorResponse, "description": "The service is not ready to handle the request. The client should wait and retry.  The service may additionally send a Retry-After header to indicate when to retry."},
+    #     500: {"model": IcebergErrorResponse, "description": "A server-side problem that might not be addressable from the client side. Used for server 500 errors without more specific documentation in individual routes."},
+    # },
+    tags=["Catalog API"],
+    summary="Drop a table from the catalog",
+    response_model_by_alias=True,
+)
+def drop_table(
+    # prefix: str = Path(..., description="An optional prefix in the path"),
+    namespace: str = Path(..., description="A namespace identifier as a single string. Multipart namespace parts should be separated by the unit separator (&#x60;0x1F&#x60;) byte."),
+    table: str = Path(..., description="A table name"),
+    purge_requested: bool = Query(False, description="Whether the user requested to purge the underlying table&#39;s data and metadata", alias="purgeRequested"),
+    # token_OAuth2: TokenModel = Security(
+    #     get_token_OAuth2, scopes=["catalog"]
+    # ),
+    # token_BearerAuth: TokenModel = Security(
+    #     get_token_BearerAuth
+    # ),
+) -> None:
+    """Remove a table from the catalog"""
+    return catalog.drop_table(identifier=(namespace, table))
+
+
+@app.head(
+    "/v1/namespaces/{namespace}/tables/{table}",
+    # responses={
+    #     204: {"description": "Success, no content"},
+    #     400: {"model": IcebergErrorResponse, "description": "Indicates a bad request error. It could be caused by an unexpected request body format or other forms of request validation failure, such as invalid json. Usually serves application/json content, although in some cases simple text/plain content might be returned by the server&#39;s middleware."},
+    #     401: {"model": IcebergErrorResponse, "description": "Unauthorized. Authentication is required and has failed or has not yet been provided."},
+    #     403: {"model": IcebergErrorResponse, "description": "Forbidden. Authenticated user does not have the necessary permissions."},
+    #     404: {"model": IcebergErrorResponse, "description": "Not Found - NoSuchTableException, Table not found"},
+    #     419: {"model": IcebergErrorResponse, "description": "Credentials have timed out. If possible, the client should refresh credentials and retry."},
+    #     503: {"model": IcebergErrorResponse, "description": "The service is not ready to handle the request. The client should wait and retry.  The service may additionally send a Retry-After header to indicate when to retry."},
+    #     500: {"model": IcebergErrorResponse, "description": "A server-side problem that might not be addressable from the client side. Used for server 500 errors without more specific documentation in individual routes."},
+    # },
+    tags=["Catalog API"],
+    summary="Check if a table exists",
+    response_model_by_alias=True,
+)
+def table_exists(
+    # prefix: str = Path(..., description="An optional prefix in the path"),
+    namespace: str = Path(..., description="A namespace identifier as a single string. Multipart namespace parts should be separated by the unit separator (&#x60;0x1F&#x60;) byte."),
+    table: str = Path(..., description="A table name"),
+    # token_OAuth2: TokenModel = Security(
+    #     get_token_OAuth2, scopes=["catalog"]
+    # ),
+    # token_BearerAuth: TokenModel = Security(
+    #     get_token_BearerAuth
+    # ),
+) -> None:
+    """Check if a table exists within a given namespace. The response does not contain a body."""
+    catalog.load_table(identifier=(namespace, table))
+
 # /v1/{prefix}/transactions/commit (POST)
 
 
