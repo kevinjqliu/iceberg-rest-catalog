@@ -283,6 +283,54 @@ def drop_namespace(
 #     return BaseCatalogAPIApi.subclasses[0]().namespace_exists(prefix, namespace)
 
 # /v1/{prefix}/namespaces/{namespace}/properties (POST)
+class UpdateNamespacePropertiesRequest(BaseModel):
+    """
+    UpdateNamespacePropertiesRequest
+    """ # noqa: E501
+    removals: Optional[List[StrictStr]] = None
+    updates: Optional[Dict[str, StrictStr]] = None
+
+class UpdateNamespacePropertiesResponse(BaseModel):
+    """
+    UpdateNamespacePropertiesResponse
+    """ # noqa: E501
+    updated: List[StrictStr] = Field(description="List of property keys that were added or updated")
+    removed: List[StrictStr] = Field(description="List of properties that were removed")
+    missing: Optional[List[StrictStr]] = Field(default=None, description="List of properties requested for removal that were not found in the namespace's properties. Represents a partial success response. Server's do not need to implement this.")
+
+@app.post(
+    "/v1/namespaces/{namespace}/properties",
+    # responses={
+    #     200: {"model": UpdateNamespacePropertiesResponse, "description": "JSON data response for a synchronous update properties request."},
+    #     400: {"model": IcebergErrorResponse, "description": "Indicates a bad request error. It could be caused by an unexpected request body format or other forms of request validation failure, such as invalid json. Usually serves application/json content, although in some cases simple text/plain content might be returned by the server&#39;s middleware."},
+    #     401: {"model": IcebergErrorResponse, "description": "Unauthorized. Authentication is required and has failed or has not yet been provided."},
+    #     403: {"model": IcebergErrorResponse, "description": "Forbidden. Authenticated user does not have the necessary permissions."},
+    #     404: {"model": IcebergErrorResponse, "description": "Not Found - Namespace not found"},
+    #     406: {"model": ErrorModel, "description": "Not Acceptable / Unsupported Operation. The server does not support this operation."},
+    #     422: {"model": IcebergErrorResponse, "description": "Unprocessable Entity - A property key was included in both &#x60;removals&#x60; and &#x60;updates&#x60;"},
+    #     419: {"model": IcebergErrorResponse, "description": "Credentials have timed out. If possible, the client should refresh credentials and retry."},
+    #     503: {"model": IcebergErrorResponse, "description": "The service is not ready to handle the request. The client should wait and retry.  The service may additionally send a Retry-After header to indicate when to retry."},
+    #     500: {"model": IcebergErrorResponse, "description": "A server-side problem that might not be addressable from the client side. Used for server 500 errors without more specific documentation in individual routes."},
+    # },
+    tags=["Catalog API"],
+    summary="Set or remove properties on a namespace",
+    response_model_by_alias=True,
+)
+def update_properties(
+    # prefix: str = Path(..., description="An optional prefix in the path"),
+    namespace: str = Path(..., description="A namespace identifier as a single string. Multipart namespace parts should be separated by the unit separator (&#x60;0x1F&#x60;) byte."),
+    update_namespace_properties_request: UpdateNamespacePropertiesRequest = Body(None, description=""),
+    # token_OAuth2: TokenModel = Security(
+    #     get_token_OAuth2, scopes=["catalog"]
+    # ),
+    # token_BearerAuth: TokenModel = Security(
+    #     get_token_BearerAuth
+    # ),
+) -> UpdateNamespacePropertiesResponse:
+    """Set and/or remove properties on a namespace. The request body specifies a list of properties to remove and a map of key value pairs to update. Properties that are not in the request are not modified or removed by this call. Server implementations are not required to support namespace properties."""
+    properties_update_summary = catalog.update_namespace_properties(namespace=namespace, removals=set(update_namespace_properties_request.removals), updates=update_namespace_properties_request.updates)
+    return UpdateNamespacePropertiesResponse(updated=properties_update_summary.updated, removed=properties_update_summary.removed, missing=properties_update_summary.missing)
+
 # /v1/{prefix}/namespaces/{namespace}/tables (GET/POST)
 # /v1/{prefix}/namespaces/{namespace}/register (POST)
 # /v1/{prefix}/namespaces/{namespace}/tables/{table} (GET/POST/DELETE/HEAD)
