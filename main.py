@@ -394,7 +394,7 @@ class LoadTableResult(BaseModel):
     """
     Result used when a table is successfully loaded.   The table metadata JSON is returned in the `metadata` field. The corresponding file location of table metadata should be returned in the `metadata-location` field, unless the metadata is not yet committed. For example, a create transaction may return metadata that is staged but not committed. Clients can check whether metadata has changed by comparing metadata locations after the table has been created.   The `config` map returns table-specific configuration for the table's resources, including its HTTP client and FileIO. For example, config may contain a specific FileIO implementation class for the table depending on its underlying storage.   The following configurations should be respected by clients:  ## General Configurations  - `token`: Authorization bearer token to use for table requests if OAuth2 security is enabled   ## AWS Configurations  The following configurations should be respected when working with tables stored in AWS S3  - `client.region`: region to configure client for making requests to AWS  - `s3.access-key-id`: id for for credentials that provide access to the data in S3  - `s3.secret-access-key`: secret for credentials that provide access to data in S3   - `s3.session-token`: if present, this value should be used for as the session token   - `s3.remote-signing-enabled`: if `true` remote signing should be performed as described in the `s3-signer-open-api.yaml` specification 
     """ # noqa: E501
-    metadata_location: Optional[StrictStr] = Field(default=None, description="May be null if the table is staged as part of a transaction", alias="metadata-location")
+    metadata_location: Optional[StrictStr] = Field(default=None, description="May be null if the table is staged as part of a transaction")#, alias="metadata-location")
     metadata: TableMetadata
     config: Optional[Dict[str, StrictStr]] = None
 
@@ -455,6 +455,45 @@ def create_table(
     return LoadTableResult(metadata_location=tbl.metadata_location, metadata=tbl.metadata, config=tbl.properties)
 
 # /v1/{prefix}/namespaces/{namespace}/register (POST)
+class RegisterTableRequest(BaseModel):
+    """
+    RegisterTableRequest
+    """ # noqa: E501
+    name: StrictStr
+    metadata_location: StrictStr = Field(alias="metadata-location")
+
+@app.post(
+    "/v1/namespaces/{namespace}/register",
+    # responses={
+    #     200: {"model": LoadTableResult, "description": "Table metadata result when loading a table"},
+    #     400: {"model": IcebergErrorResponse, "description": "Indicates a bad request error. It could be caused by an unexpected request body format or other forms of request validation failure, such as invalid json. Usually serves application/json content, although in some cases simple text/plain content might be returned by the server&#39;s middleware."},
+    #     401: {"model": IcebergErrorResponse, "description": "Unauthorized. Authentication is required and has failed or has not yet been provided."},
+    #     403: {"model": IcebergErrorResponse, "description": "Forbidden. Authenticated user does not have the necessary permissions."},
+    #     404: {"model": IcebergErrorResponse, "description": "Not Found - The namespace specified does not exist"},
+    #     409: {"model": IcebergErrorResponse, "description": "Conflict - The table already exists"},
+    #     419: {"model": IcebergErrorResponse, "description": "Credentials have timed out. If possible, the client should refresh credentials and retry."},
+    #     503: {"model": IcebergErrorResponse, "description": "The service is not ready to handle the request. The client should wait and retry.  The service may additionally send a Retry-After header to indicate when to retry."},
+    #     500: {"model": IcebergErrorResponse, "description": "A server-side problem that might not be addressable from the client side. Used for server 500 errors without more specific documentation in individual routes."},
+    # },
+    tags=["Catalog API"],
+    summary="Register a table in the given namespace using given metadata file location",
+    response_model_by_alias=True,
+)
+def register_table(
+    # prefix: str = Path(..., description="An optional prefix in the path"),
+    namespace: str = Path(..., description="A namespace identifier as a single string. Multipart namespace parts should be separated by the unit separator (&#x60;0x1F&#x60;) byte."),
+    register_table_request: RegisterTableRequest = Body(None, description=""),
+    # token_OAuth2: TokenModel = Security(
+    #     get_token_OAuth2, scopes=["catalog"]
+    # ),
+    # token_BearerAuth: TokenModel = Security(
+    #     get_token_BearerAuth
+    # ),
+) -> LoadTableResult:
+    """Register a table using given metadata file location."""
+    tbl = catalog.register_table(identifier=(namespace, register_table_request.name), metadata_location=register_table_request.metadata_location)
+    return LoadTableResult(metadata_location=tbl.metadata_location, metadata=tbl.metadata, config=tbl.properties)
+
 # /v1/{prefix}/namespaces/{namespace}/tables/{table} (GET/POST/DELETE/HEAD)
 # /v1/{prefix}/transactions/commit (POST)
 
