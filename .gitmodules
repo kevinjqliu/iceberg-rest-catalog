@@ -1,0 +1,3 @@
+[submodule "vendor/iceberg-python"]
+	path = vendor/iceberg-python
+	url = git@github.com:apache/iceberg-python.git
