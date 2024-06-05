@@ -1,7 +1,13 @@
 from typing import Dict, List, Optional, Union
 
 from fastapi import Body, FastAPI, Path, Query
-from pydantic import BaseModel, Field, StrictStr
+from pydantic import BaseModel, Field, StrictBool, StrictStr
+
+from pyiceberg.table import TableIdentifier
+from pyiceberg.table.metadata import TableMetadata
+from pyiceberg.schema import Schema
+from pyiceberg.partitioning import PartitionSpec
+from pyiceberg.table.sorting import SortOrder
 
 app = FastAPI()
 
@@ -332,6 +338,122 @@ def update_properties(
     return UpdateNamespacePropertiesResponse(updated=properties_update_summary.updated, removed=properties_update_summary.removed, missing=properties_update_summary.missing)
 
 # /v1/{prefix}/namespaces/{namespace}/tables (GET/POST)
+class ListTablesResponse(BaseModel):
+    """
+    ListTablesResponse
+    """ # noqa: E501
+    next_page_token: Optional[StrictStr] = Field(default=None, description="An opaque token which allows clients to make use of pagination for a list API (e.g. ListTables). Clients will initiate the first paginated request by sending an empty `pageToken` e.g. `GET /tables?pageToken` or `GET /tables?pageToken=` signaling to the service that the response should be paginated. Servers that support pagination will recognize `pageToken` and return a `next-page-token` in response if there are more results available. After the initial request, it is expected that the value of `next-page-token` from the last response is used in the subsequent request. Servers that do not support pagination will ignore `next-page-token` and return all results.", alias="next-page-token")
+    identifiers: Optional[List[TableIdentifier]] = None
+
+@app.get(
+    "/v1/namespaces/{namespace}/tables",
+    # responses={
+    #     200: {"model": ListTablesResponse, "description": "A list of table identifiers"},
+    #     400: {"model": IcebergErrorResponse, "description": "Indicates a bad request error. It could be caused by an unexpected request body format or other forms of request validation failure, such as invalid json. Usually serves application/json content, although in some cases simple text/plain content might be returned by the server&#39;s middleware."},
+    #     401: {"model": IcebergErrorResponse, "description": "Unauthorized. Authentication is required and has failed or has not yet been provided."},
+    #     403: {"model": IcebergErrorResponse, "description": "Forbidden. Authenticated user does not have the necessary permissions."},
+    #     404: {"model": IcebergErrorResponse, "description": "Not Found - The namespace specified does not exist"},
+    #     419: {"model": IcebergErrorResponse, "description": "Credentials have timed out. If possible, the client should refresh credentials and retry."},
+    #     503: {"model": IcebergErrorResponse, "description": "The service is not ready to handle the request. The client should wait and retry.  The service may additionally send a Retry-After header to indicate when to retry."},
+    #     500: {"model": IcebergErrorResponse, "description": "A server-side problem that might not be addressable from the client side. Used for server 500 errors without more specific documentation in individual routes."},
+    # },
+    tags=["Catalog API"],
+    summary="List all table identifiers underneath a given namespace",
+    response_model_by_alias=True,
+)
+def list_tables(
+    # prefix: str = Path(..., description="An optional prefix in the path"),
+    namespace: str = Path(..., description="A namespace identifier as a single string. Multipart namespace parts should be separated by the unit separator (&#x60;0x1F&#x60;) byte."),
+    page_token: str = Query(None, description="", alias="pageToken"),
+    page_size: int = Query(None, description="For servers that support pagination, this signals an upper bound of the number of results that a client will receive. For servers that do not support pagination, clients may receive results larger than the indicated &#x60;pageSize&#x60;.", alias="pageSize", ge=1),
+    # token_OAuth2: TokenModel = Security(
+    #     get_token_OAuth2, scopes=["catalog"]
+    # ),
+    # token_BearerAuth: TokenModel = Security(
+    #     get_token_BearerAuth
+    # ),
+) -> ListTablesResponse:
+    """Return all table identifiers under this namespace"""
+    identifiers = catalog.list_tables(namespace=namespace)
+    table_identifiers = [TableIdentifier(namespace=[identifier[0]], name=identifier[1]) for identifier in identifiers] 
+    return ListTablesResponse(identifiers=table_identifiers)
+
+class CreateTableRequest(BaseModel):
+    """
+    CreateTableRequest
+    """ # noqa: E501
+    name: StrictStr
+    location: Optional[StrictStr] = None
+    schema: Schema = Field(alias="schema")
+    partition_spec: Optional[PartitionSpec] = Field(default=None, alias="partition-spec")
+    write_order: Optional[SortOrder] = Field(default=None, alias="write-order")
+    stage_create: Optional[StrictBool] = Field(default=None, alias="stage-create")
+    properties: Optional[Dict[str, StrictStr]] = None
+
+class LoadTableResult(BaseModel):
+    """
+    Result used when a table is successfully loaded.   The table metadata JSON is returned in the `metadata` field. The corresponding file location of table metadata should be returned in the `metadata-location` field, unless the metadata is not yet committed. For example, a create transaction may return metadata that is staged but not committed. Clients can check whether metadata has changed by comparing metadata locations after the table has been created.   The `config` map returns table-specific configuration for the table's resources, including its HTTP client and FileIO. For example, config may contain a specific FileIO implementation class for the table depending on its underlying storage.   The following configurations should be respected by clients:  ## General Configurations  - `token`: Authorization bearer token to use for table requests if OAuth2 security is enabled   ## AWS Configurations  The following configurations should be respected when working with tables stored in AWS S3  - `client.region`: region to configure client for making requests to AWS  - `s3.access-key-id`: id for for credentials that provide access to the data in S3  - `s3.secret-access-key`: secret for credentials that provide access to data in S3   - `s3.session-token`: if present, this value should be used for as the session token   - `s3.remote-signing-enabled`: if `true` remote signing should be performed as described in the `s3-signer-open-api.yaml` specification 
+    """ # noqa: E501
+    metadata_location: Optional[StrictStr] = Field(default=None, description="May be null if the table is staged as part of a transaction", alias="metadata-location")
+    metadata: TableMetadata
+    config: Optional[Dict[str, StrictStr]] = None
+
+
+@app.post(
+    "/v1/namespaces/{namespace}/tables",
+    # responses={
+    #     200: {"model": LoadTableResult, "description": "Table metadata result after creating a table"},
+    #     400: {"model": IcebergErrorResponse, "description": "Indicates a bad request error. It could be caused by an unexpected request body format or other forms of request validation failure, such as invalid json. Usually serves application/json content, although in some cases simple text/plain content might be returned by the server&#39;s middleware."},
+    #     401: {"model": IcebergErrorResponse, "description": "Unauthorized. Authentication is required and has failed or has not yet been provided."},
+    #     403: {"model": IcebergErrorResponse, "description": "Forbidden. Authenticated user does not have the necessary permissions."},
+    #     404: {"model": IcebergErrorResponse, "description": "Not Found - The namespace specified does not exist"},
+    #     409: {"model": IcebergErrorResponse, "description": "Conflict - The table already exists"},
+    #     419: {"model": IcebergErrorResponse, "description": "Credentials have timed out. If possible, the client should refresh credentials and retry."},
+    #     503: {"model": IcebergErrorResponse, "description": "The service is not ready to handle the request. The client should wait and retry.  The service may additionally send a Retry-After header to indicate when to retry."},
+    #     500: {"model": IcebergErrorResponse, "description": "A server-side problem that might not be addressable from the client side. Used for server 500 errors without more specific documentation in individual routes."},
+    # },
+    tags=["Catalog API"],
+    summary="Create a table in the given namespace",
+    response_model_by_alias=True,
+)
+def create_table(
+    # prefix: str = Path(..., description="An optional prefix in the path"),
+    namespace: str = Path(..., description="A namespace identifier as a single string. Multipart namespace parts should be separated by the unit separator (&#x60;0x1F&#x60;) byte."),
+    # x_iceberg_access_delegation: str = Header(None, description="Optional signal to the server that the client supports delegated access via a comma-separated list of access mechanisms.  The server may choose to supply access via any or none of the requested mechanisms.  Specific properties and handling for &#x60;vended-credentials&#x60; is documented in the &#x60;LoadTableResult&#x60; schema section of this spec document.  The protocol and specification for &#x60;remote-signing&#x60; is documented in  the &#x60;s3-signer-open-api.yaml&#x60; OpenApi spec in the &#x60;aws&#x60; module. "),
+    create_table_request: CreateTableRequest = Body(None, description=""),
+    # token_OAuth2: TokenModel = Security(
+    #     get_token_OAuth2, scopes=["catalog"]
+    # ),
+    # token_BearerAuth: TokenModel = Security(
+    #     get_token_BearerAuth
+    # ),
+) -> LoadTableResult:
+        # identifier: Union[str, Identifier],
+        # schema: Union[Schema, "pa.Schema"],
+        # location: Optional[str] = None,
+        # partition_spec: PartitionSpec = UNPARTITIONED_PARTITION_SPEC,
+        # sort_order: SortOrder = UNSORTED_SORT_ORDER,
+        # properties: Properties = EMPTY_DICT,
+
+        # name: StrictStr
+        # location: Optional[StrictStr] = None
+        # schema: Schema = Field(alias="schema")
+        # partition_spec: Optional[PartitionSpec] = Field(default=None, alias="partition-spec")
+        # write_order: Optional[SortOrder] = Field(default=None, alias="write-order")
+        # stage_create: Optional[StrictBool] = Field(default=None, alias="stage-create")
+        # properties: Optional[Dict[str, StrictStr]] = None
+
+    """Create a table or start a create transaction, like atomic CTAS.  If &#x60;stage-create&#x60; is false, the table is created immediately.  If &#x60;stage-create&#x60; is true, the table is not created, but table metadata is initialized and returned. The service should prepare as needed for a commit to the table commit endpoint to complete the create transaction. The client uses the returned metadata to begin a transaction. To commit the transaction, the client sends all create and subsequent changes to the table commit route. Changes from the table create operation include changes like AddSchemaUpdate and SetCurrentSchemaUpdate that set the initial table state."""
+    tbl = catalog.create_table(
+        identifier=(namespace, create_table_request.name), 
+        schema=create_table_request.schema, 
+        location=create_table_request.location,
+        partition_spec=create_table_request.partition_spec, 
+        sort_order=create_table_request.write_order,
+        properties=create_table_request.properties
+    )
+    return LoadTableResult(metadata_location=tbl.metadata_location, metadata=tbl.metadata, config=tbl.properties)
+
 # /v1/{prefix}/namespaces/{namespace}/register (POST)
 # /v1/{prefix}/namespaces/{namespace}/tables/{table} (GET/POST/DELETE/HEAD)
 # /v1/{prefix}/transactions/commit (POST)
