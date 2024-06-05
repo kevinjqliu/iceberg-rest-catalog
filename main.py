@@ -1,14 +1,15 @@
-from typing import Dict, List, Optional, Union
+from typing import Dict, Optional
 
 from fastapi import Body, FastAPI, HTTPException, Header, Path, Query
-from pydantic import BaseModel, Field, StrictBool, StrictStr
+from pydantic import BaseModel, Field, StrictStr
 
-from pyiceberg.table import TableIdentifier, TableRequirement, TableUpdate
+from pyiceberg.table import TableIdentifier
 from pyiceberg.table.metadata import TableMetadata
-from pyiceberg.schema import Schema
-from pyiceberg.partitioning import PartitionSpec
-from pyiceberg.table.sorting import SortOrder
 from pyiceberg.exceptions import TableAlreadyExistsError, NoSuchTableError, NamespaceAlreadyExistsError, NoSuchNamespaceError, NamespaceNotEmptyError
+
+from models.config import CatalogConfig
+from models.request import CommitTableRequest, CommitTransactionRequest, CreateNamespaceRequest, CreateTableRequest, RegisterTableRequest, RenameTableRequest, UpdateNamespacePropertiesRequest
+from models.response import CommitTableResponse, CreateNamespaceResponse, GetNamespaceResponse, ListNamespacesResponse, ListTablesResponse, UpdateNamespacePropertiesResponse
 
 app = FastAPI()
 
@@ -55,13 +56,6 @@ def reset():
 
 
 # /v1/config
-class CatalogConfig(BaseModel):
-    """
-    Server-provided configuration for the catalog.
-    """ # noqa: E501
-    overrides: Dict[str, StrictStr] = Field(description="Properties that should be used to override client configuration; applied after defaults and client configuration.")
-    defaults: Dict[str, StrictStr] = Field(description="Properties that should be used as default configuration; applied before client configuration.")
-
 @app.get(
     "/v1/config",
     # responses={
@@ -85,21 +79,6 @@ def get_config(
 
 
 # /v1/{prefix}/namespaces (GET/POST)
-class CreateNamespaceRequest(BaseModel):
-    """
-    CreateNamespaceRequest
-    """ # noqa: E501
-    namespace: List[StrictStr] = Field(description="Reference to one or more levels of a namespace")
-    properties: Optional[Dict[str, StrictStr]] = Field(default=None, description="Configured string to string map of properties for the namespace")
-
-class CreateNamespaceResponse(BaseModel):
-    """
-    CreateNamespaceResponse
-    """ # noqa: E501
-    namespace: List[StrictStr] = Field(description="Reference to one or more levels of a namespace")
-    properties: Optional[Dict[str, StrictStr]] = Field(default=None, description="Properties stored on the namespace, if supported by the server.")
-
-
 @app.post(
     "/v1/namespaces",
     # responses={
@@ -129,14 +108,6 @@ def create_namespace(
         raise HTTPException(status_code=409, detail=f"Namespace already exists: {namespace}")
     return CreateNamespaceResponse(namespace=namespace, properties=properties)
 
-class ListNamespacesResponse(BaseModel):
-    """
-    ListNamespacesResponse
-    """ # noqa: E501
-    # next_page_token: Optional[StrictStr] = Field(default=None, description="An opaque token which allows clients to make use of pagination for a list API (e.g. ListTables). Clients will initiate the first paginated request by sending an empty `pageToken` e.g. `GET /tables?pageToken` or `GET /tables?pageToken=` signaling to the service that the response should be paginated. Servers that support pagination will recognize `pageToken` and return a `next-page-token` in response if there are more results available. After the initial request, it is expected that the value of `next-page-token` from the last response is used in the subsequent request. Servers that do not support pagination will ignore `next-page-token` and return all results.", alias="next-page-token")
-    namespaces: Optional[List[List[StrictStr]]] = None
-
-
 @app.get(
     "/v1/namespaces",
     # responses={
@@ -162,13 +133,6 @@ def list_namespaces(
     return ListNamespacesResponse(namespaces=catalog.list_namespaces())
 
 # /v1/{prefix}/namespaces/{namespace} (GET/DELETE/HEAD)
-class GetNamespaceResponse(BaseModel):
-    """
-    GetNamespaceResponse
-    """ # noqa: E501
-    namespace: List[StrictStr] = Field(description="Reference to one or more levels of a namespace")
-    properties: Optional[Dict[str, StrictStr]] = Field(default=None, description="Properties stored on the namespace, if supported by the server. If the server does not support namespace properties, it should return null for this field. If namespace properties are supported, but none are set, it should return an empty object.")
-
 @app.get(
     "/v1/namespaces/{namespace}",
     # responses={
@@ -248,21 +212,6 @@ def namespace_exists(
         raise HTTPException(status_code=404, detail=f"Namespace does not exist: {namespace}")
 
 # /v1/{prefix}/namespaces/{namespace}/properties (POST)
-class UpdateNamespacePropertiesRequest(BaseModel):
-    """
-    UpdateNamespacePropertiesRequest
-    """ # noqa: E501
-    removals: Optional[List[StrictStr]] = None
-    updates: Optional[Dict[str, StrictStr]] = None
-
-class UpdateNamespacePropertiesResponse(BaseModel):
-    """
-    UpdateNamespacePropertiesResponse
-    """ # noqa: E501
-    updated: List[StrictStr] = Field(description="List of property keys that were added or updated")
-    removed: List[StrictStr] = Field(description="List of properties that were removed")
-    missing: Optional[List[StrictStr]] = Field(default=None, description="List of properties requested for removal that were not found in the namespace's properties. Represents a partial success response. Server's do not need to implement this.")
-
 @app.post(
     "/v1/namespaces/{namespace}/properties",
     # responses={
@@ -293,13 +242,6 @@ def update_namespace_properties(
     return UpdateNamespacePropertiesResponse(updated=sorted(summary.updated), removed=sorted(summary.removed), missing=sorted(summary.missing))
 
 # /v1/{prefix}/namespaces/{namespace}/tables (GET/POST)
-class ListTablesResponse(BaseModel):
-    """
-    ListTablesResponse
-    """ # noqa: E501
-    next_page_token: Optional[StrictStr] = Field(default=None, description="An opaque token which allows clients to make use of pagination for a list API (e.g. ListTables). Clients will initiate the first paginated request by sending an empty `pageToken` e.g. `GET /tables?pageToken` or `GET /tables?pageToken=` signaling to the service that the response should be paginated. Servers that support pagination will recognize `pageToken` and return a `next-page-token` in response if there are more results available. After the initial request, it is expected that the value of `next-page-token` from the last response is used in the subsequent request. Servers that do not support pagination will ignore `next-page-token` and return all results.", alias="next-page-token")
-    identifiers: Optional[List[TableIdentifier]] = None
-
 @app.get(
     "/v1/namespaces/{namespace}/tables",
     # responses={
@@ -326,17 +268,6 @@ def list_tables(
     table_identifiers = [TableIdentifier(namespace=[identifier[0]], name=identifier[1]) for identifier in identifiers] 
     return ListTablesResponse(identifiers=table_identifiers)
 
-class CreateTableRequest(BaseModel):
-    """
-    CreateTableRequest
-    """ # noqa: E501
-    name: StrictStr
-    location: Optional[StrictStr] = None
-    schema: Schema = Field(alias="schema")
-    partition_spec: Optional[PartitionSpec] = Field(default=None, alias="partition-spec")
-    write_order: Optional[SortOrder] = Field(default=None, alias="write-order")
-    stage_create: Optional[StrictBool] = Field(default=None, alias="stage-create")
-    properties: Optional[Dict[str, StrictStr]] = None
 
 class LoadTableResult(BaseModel):
     """
@@ -369,21 +300,6 @@ def create_table(
     # x_iceberg_access_delegation: str = Header(None, description="Optional signal to the server that the client supports delegated access via a comma-separated list of access mechanisms.  The server may choose to supply access via any or none of the requested mechanisms.  Specific properties and handling for &#x60;vended-credentials&#x60; is documented in the &#x60;LoadTableResult&#x60; schema section of this spec document.  The protocol and specification for &#x60;remote-signing&#x60; is documented in  the &#x60;s3-signer-open-api.yaml&#x60; OpenApi spec in the &#x60;aws&#x60; module. "),
     create_table_request: CreateTableRequest = Body(None, description=""),
 ) -> LoadTableResult:
-        # identifier: Union[str, Identifier],
-        # schema: Union[Schema, "pa.Schema"],
-        # location: Optional[str] = None,
-        # partition_spec: PartitionSpec = UNPARTITIONED_PARTITION_SPEC,
-        # sort_order: SortOrder = UNSORTED_SORT_ORDER,
-        # properties: Properties = EMPTY_DICT,
-
-        # name: StrictStr
-        # location: Optional[StrictStr] = None
-        # schema: Schema = Field(alias="schema")
-        # partition_spec: Optional[PartitionSpec] = Field(default=None, alias="partition-spec")
-        # write_order: Optional[SortOrder] = Field(default=None, alias="write-order")
-        # stage_create: Optional[StrictBool] = Field(default=None, alias="stage-create")
-        # properties: Optional[Dict[str, StrictStr]] = None
-
     """Create a table or start a create transaction, like atomic CTAS.  If &#x60;stage-create&#x60; is false, the table is created immediately.  If &#x60;stage-create&#x60; is true, the table is not created, but table metadata is initialized and returned. The service should prepare as needed for a commit to the table commit endpoint to complete the create transaction. The client uses the returned metadata to begin a transaction. To commit the transaction, the client sends all create and subsequent changes to the table commit route. Changes from the table create operation include changes like AddSchemaUpdate and SetCurrentSchemaUpdate that set the initial table state."""
     try:
         identifier = (namespace, create_table_request.name)
@@ -400,13 +316,6 @@ def create_table(
     return LoadTableResult(metadata_location=tbl.metadata_location, metadata=tbl.metadata, config=tbl.properties)
 
 # /v1/{prefix}/namespaces/{namespace}/register (POST)
-class RegisterTableRequest(BaseModel):
-    """
-    RegisterTableRequest
-    """ # noqa: E501
-    name: StrictStr
-    metadata_location: StrictStr = Field(alias="metadata-location")
-
 @app.post(
     "/v1/namespaces/{namespace}/register",
     # responses={
@@ -463,20 +372,6 @@ def load_table(
         raise HTTPException(status_code=404, detail=f"Table does not exist: {identifier}")
     return LoadTableResult(metadata_location=tbl.metadata_location, metadata=tbl.metadata, config=tbl.properties)
 
-class CommitTableRequest(BaseModel):
-    """
-    CommitTableRequest
-    """ # noqa: E501
-    identifier: Optional[TableIdentifier] = None
-    requirements: List[TableRequirement]
-    updates: List[TableUpdate]
-
-class CommitTableResponse(BaseModel):
-    """
-    CommitTableResponse
-    """ # noqa: E501
-    metadata_location: StrictStr = Field(alias="metadata-location")
-    metadata: TableMetadata
 
 @app.post(
     "/v1/namespaces/{namespace}/tables/{table}",
@@ -555,12 +450,6 @@ def table_exists(
     catalog.load_table(identifier=(namespace, table))
 
 # /v1/{prefix}/transactions/commit (POST)
-class CommitTransactionRequest(BaseModel):
-    """
-    CommitTransactionRequest
-    """ # noqa: E501
-    table_changes: List[CommitTableRequest] = Field(alias="table-changes")
-
 @app.post(
     "/v1/{prefix}/transactions/commit",
     # responses={
@@ -587,13 +476,6 @@ def commit_transaction(
     ...
 
 # /v1/{prefix}/tables/rename (POST)
-class RenameTableRequest(BaseModel):
-    """
-    RenameTableRequest
-    """ # noqa: E501
-    source: TableIdentifier
-    destination: TableIdentifier
-
 @app.post(
     "/v1/tables/rename",
     # responses={
