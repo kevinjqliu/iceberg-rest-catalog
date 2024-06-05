@@ -641,6 +641,43 @@ def table_exists(
     catalog.load_table(identifier=(namespace, table))
 
 # /v1/{prefix}/transactions/commit (POST)
+class CommitTransactionRequest(BaseModel):
+    """
+    CommitTransactionRequest
+    """ # noqa: E501
+    table_changes: List[CommitTableRequest] = Field(alias="table-changes")
+
+@app.post(
+    "/v1/{prefix}/transactions/commit",
+    # responses={
+    #     204: {"description": "Success, no content"},
+    #     400: {"model": IcebergErrorResponse, "description": "Indicates a bad request error. It could be caused by an unexpected request body format or other forms of request validation failure, such as invalid json. Usually serves application/json content, although in some cases simple text/plain content might be returned by the server&#39;s middleware."},
+    #     401: {"model": IcebergErrorResponse, "description": "Unauthorized. Authentication is required and has failed or has not yet been provided."},
+    #     403: {"model": IcebergErrorResponse, "description": "Forbidden. Authenticated user does not have the necessary permissions."},
+    #     404: {"model": IcebergErrorResponse, "description": "Not Found - NoSuchTableException, table to load does not exist"},
+    #     409: {"model": IcebergErrorResponse, "description": "Conflict - CommitFailedException, one or more requirements failed. The client may retry."},
+    #     419: {"model": IcebergErrorResponse, "description": "Credentials have timed out. If possible, the client should refresh credentials and retry."},
+    #     500: {"model": IcebergErrorResponse, "description": "An unknown server-side problem occurred; the commit state is unknown."},
+    #     503: {"model": IcebergErrorResponse, "description": "The service is not ready to handle the request. The client should wait and retry.  The service may additionally send a Retry-After header to indicate when to retry."},
+    #     502: {"model": IcebergErrorResponse, "description": "A gateway or proxy received an invalid response from the upstream server; the commit state is unknown."},
+    #     504: {"model": IcebergErrorResponse, "description": "A server-side gateway timeout occurred; the commit state is unknown."},
+    #     500: {"model": IcebergErrorResponse, "description": "A server-side problem that might not be addressable on the client."},
+    # },
+    tags=["Catalog API"],
+    summary="Commit updates to multiple tables in an atomic operation",
+    response_model_by_alias=True,
+)
+def commit_transaction(
+    # prefix: str = Path(..., description="An optional prefix in the path"),
+    commit_transaction_request: CommitTransactionRequest = Body(None, description="Commit updates to multiple tables in an atomic operation  A commit for a single table consists of a table identifier with requirements and updates. Requirements are assertions that will be validated before attempting to make and commit changes. For example, &#x60;assert-ref-snapshot-id&#x60; will check that a named ref&#39;s snapshot ID has a certain value.  Updates are changes to make to table metadata. For example, after asserting that the current main ref is at the expected snapshot, a commit may add a new child snapshot and set the ref to the new snapshot id."),
+    # token_OAuth2: TokenModel = Security(
+    #     get_token_OAuth2, scopes=["catalog"]
+    # ),
+    # token_BearerAuth: TokenModel = Security(
+    #     get_token_BearerAuth
+    # ),
+) -> None:
+    ...
 
 
 # /v1/oauth/tokens
