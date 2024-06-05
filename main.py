@@ -333,7 +333,7 @@ class UpdateNamespacePropertiesResponse(BaseModel):
     summary="Set or remove properties on a namespace",
     response_model_by_alias=True,
 )
-def update_properties(
+def update_namespace_properties(
     # prefix: str = Path(..., description="An optional prefix in the path"),
     namespace: str = Path(..., description="A namespace identifier as a single string. Multipart namespace parts should be separated by the unit separator (&#x60;0x1F&#x60;) byte."),
     update_namespace_properties_request: UpdateNamespacePropertiesRequest = Body(None, description=""),
@@ -345,8 +345,8 @@ def update_properties(
     # ),
 ) -> UpdateNamespacePropertiesResponse:
     """Set and/or remove properties on a namespace. The request body specifies a list of properties to remove and a map of key value pairs to update. Properties that are not in the request are not modified or removed by this call. Server implementations are not required to support namespace properties."""
-    properties_update_summary = catalog.update_namespace_properties(namespace=namespace, removals=set(update_namespace_properties_request.removals), updates=update_namespace_properties_request.updates)
-    return UpdateNamespacePropertiesResponse(updated=properties_update_summary.updated, removed=properties_update_summary.removed, missing=properties_update_summary.missing)
+    summary = catalog.update_namespace_properties(namespace=namespace, removals=set(update_namespace_properties_request.removals), updates=update_namespace_properties_request.updates)
+    return UpdateNamespacePropertiesResponse(updated=sorted(summary.updated), removed=sorted(summary.removed), missing=sorted(summary.missing))
 
 # /v1/{prefix}/namespaces/{namespace}/tables (GET/POST)
 class ListTablesResponse(BaseModel):
