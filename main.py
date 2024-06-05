@@ -553,12 +553,6 @@ def rename_table(
         )
 
 
-# /v1/oauth/tokens
-# /v1/{prefix}/namespaces/{namespace}/views
-# /v1/{prefix}/namespaces/{namespace}/views/{view}
-# /v1/{prefix}/views/rename
-
-
 # /v1/{prefix}/namespaces/{namespace}/tables/{table}/metrics
 @app.post(
     "/v1/namespaces/{namespace}/tables/{table}/metrics",
@@ -576,3 +570,50 @@ def report_metrics(
         None, description="The request containing the metrics report to be sent"
     ),
 ) -> None: ...
+
+
+# /v1/oauth/tokens
+# /v1/{prefix}/namespaces/{namespace}/views
+@app.get(
+    "/v1/namespaces/{namespace}/views",
+    tags=["Catalog API"],
+    summary="List all view identifiers underneath a given namespace",
+    response_model_by_alias=True,
+)
+def list_views(
+    namespace: str = Path(
+        ...,
+        description="A namespace identifier as a single string. Multipart namespace parts should be separated by the unit separator (&#x60;0x1F&#x60;) byte.",
+    ),
+) -> ListTablesResponse:
+    # (TODO): implement this!
+    """Return all view identifiers under this namespace"""
+    namespace_tuple = (namespace,)
+    raise IcebergHTTPException(
+        status_code=404, detail=f"Namespace does not exist: {namespace_tuple}"
+    )
+
+
+# /v1/{prefix}/namespaces/{namespace}/views/{view}
+@app.get(
+    "/v1/namespaces/{namespace}/views/{view}",
+    tags=["Catalog API"],
+    summary="Load a view from the catalog",
+    response_model_by_alias=True,
+)
+def load_view(
+    namespace: str = Path(
+        ...,
+        description="A namespace identifier as a single string. Multipart namespace parts should be separated by the unit separator (&#x60;0x1F&#x60;) byte.",
+    ),
+    view: str = Path(..., description="A view name"),
+) -> None:
+    # (TODO): implement this! should return LoadViewResult
+    namespace_tuple = (namespace,)
+    """Load a view from the catalog.  The response contains both configuration and view metadata. The configuration, if non-empty is used as additional configuration for the view that overrides catalog configuration.  The response also contains the view&#39;s full metadata, matching the view metadata JSON file.  The catalog configuration may contain credentials that should be used for subsequent requests for the view. The configuration key \&quot;token\&quot; is used to pass an access token to be used as a bearer token for view requests. Otherwise, a token may be passed using a RFC 8693 token type as a configuration key. For example, \&quot;urn:ietf:params:oauth:token-type:jwt&#x3D;&lt;JWT-token&gt;\&quot;."""
+    raise IcebergHTTPException(
+        status_code=404, detail=f"Namespace does not exist: {namespace_tuple}"
+    )
+
+
+# /v1/{prefix}/views/rename
