@@ -356,7 +356,10 @@ def update_namespace_properties(
     # ),
 ) -> UpdateNamespacePropertiesResponse:
     """Set and/or remove properties on a namespace. The request body specifies a list of properties to remove and a map of key value pairs to update. Properties that are not in the request are not modified or removed by this call. Server implementations are not required to support namespace properties."""
-    summary = catalog.update_namespace_properties(namespace=namespace, removals=set(update_namespace_properties_request.removals), updates=update_namespace_properties_request.updates)
+    try:
+        summary = catalog.update_namespace_properties(namespace=namespace, removals=set(update_namespace_properties_request.removals), updates=update_namespace_properties_request.updates)
+    except NoSuchNamespaceError:
+        raise HTTPException(status_code=404, detail=f"Namespace does not exist: {namespace}")
     return UpdateNamespacePropertiesResponse(updated=sorted(summary.updated), removed=sorted(summary.removed), missing=sorted(summary.missing))
 
 # /v1/{prefix}/namespaces/{namespace}/tables (GET/POST)
