@@ -101,12 +101,6 @@ class CatalogConfig(BaseModel):
 )
 def get_config(
     warehouse: str = Query(None, description="Warehouse location or identifier to request from the service", alias="warehouse"),
-    # token_OAuth2: TokenModel = Security(
-    #     get_token_OAuth2, scopes=["catalog"]
-    # ),
-    # token_BearerAuth: TokenModel = Security(
-    #     get_token_BearerAuth
-    # ),
 ) -> CatalogConfig:
     """ All REST clients should first call this route to get catalog configuration properties from the server to configure the catalog and its HTTP client. Configuration from the server consists of two sets of key/value pairs. - defaults -  properties that should be used as default configuration; applied before client configuration - overrides - properties that should be used to override client configuration; applied after defaults and client configuration  Catalog configuration is constructed by setting the defaults, then client- provided configuration, and finally overrides. The final property set is then used to configure the catalog.  For example, a default configuration property might set the size of the client pool, which can be replaced with a client-specific setting. An override might be used to set the warehouse location, which is stored on the server rather than in client configuration.  Common catalog configuration settings are documented at https://iceberg.apache.org/docs/latest/configuration/#catalog-properties """
     return CatalogConfig(overrides={}, defaults={})
@@ -148,12 +142,6 @@ class CreateNamespaceResponse(BaseModel):
 def create_namespace(
     # prefix: str = Path(..., description="An optional prefix in the path"),
     create_namespace_request: CreateNamespaceRequest = Body(None, description=""),
-    # token_OAuth2: TokenModel = Security(
-    #     get_token_OAuth2, scopes=["catalog"]
-    # ),
-    # token_BearerAuth: TokenModel = Security(
-    #     get_token_BearerAuth
-    # ),
 ) -> CreateNamespaceResponse:
     """Create a namespace, with an optional set of properties. The server might also add properties, such as &#x60;last_modified_time&#x60; etc."""
     namespace = tuple(create_namespace_request.namespace)
@@ -193,12 +181,6 @@ def list_namespaces(
     # page_token: str = Query(None, description="", alias="pageToken"),
     # page_size: int = Query(None, description="For servers that support pagination, this signals an upper bound of the number of results that a client will receive. For servers that do not support pagination, clients may receive results larger than the indicated &#x60;pageSize&#x60;.", alias="pageSize", ge=1),
     # parent: str = Query(None, description="An optional namespace, underneath which to list namespaces. If not provided or empty, all top-level namespaces should be listed. If parent is a multipart namespace, the parts must be separated by the unit separator (&#x60;0x1F&#x60;) byte.", alias="parent"),
-    # token_OAuth2: TokenModel = Security(
-    #     get_token_OAuth2, scopes=["catalog"]
-    # ),
-    # token_BearerAuth: TokenModel = Security(
-    #     get_token_BearerAuth
-    # ),
 ) -> ListNamespacesResponse:
     """List all namespaces at a certain level, optionally starting from a given parent namespace. If table accounting.tax.paid.info exists, using &#39;SELECT NAMESPACE IN accounting&#39; would translate into &#x60;GET /namespaces?parent&#x3D;accounting&#x60; and must return a namespace, [\&quot;accounting\&quot;, \&quot;tax\&quot;] only. Using &#39;SELECT NAMESPACE IN accounting.tax&#39; would translate into &#x60;GET /namespaces?parent&#x3D;accounting%1Ftax&#x60; and must return a namespace, [\&quot;accounting\&quot;, \&quot;tax\&quot;, \&quot;paid\&quot;]. If &#x60;parent&#x60; is not provided, all top-level namespaces should be listed."""
     return ListNamespacesResponse(namespaces=catalog.list_namespaces())
@@ -230,12 +212,6 @@ class GetNamespaceResponse(BaseModel):
 def load_namespace_metadata(
     # prefix: str = Path(..., description="An optional prefix in the path"),
     namespace: str = Path(..., description="A namespace identifier as a single string. Multipart namespace parts should be separated by the unit separator (&#x60;0x1F&#x60;) byte."),
-    # token_OAuth2: TokenModel = Security(
-    #     get_token_OAuth2, scopes=["catalog"]
-    # ),
-    # token_BearerAuth: TokenModel = Security(
-    #     get_token_BearerAuth
-    # ),
 ) -> GetNamespaceResponse:
     """Return all stored metadata properties for a given namespace"""
     try:
@@ -263,12 +239,6 @@ def load_namespace_metadata(
 def drop_namespace(
     # prefix: str = Path(..., description="An optional prefix in the path"),
     namespace: str = Path(..., description="A namespace identifier as a single string. Multipart namespace parts should be separated by the unit separator (&#x60;0x1F&#x60;) byte."),
-    # token_OAuth2: TokenModel = Security(
-    #     get_token_OAuth2, scopes=["catalog"]
-    # ),
-    # token_BearerAuth: TokenModel = Security(
-    #     get_token_BearerAuth
-    # ),
 ) -> None:
     try:
         catalog.drop_namespace(namespace)
@@ -297,12 +267,6 @@ def drop_namespace(
 def namespace_exists(
     # prefix: str = Path(..., description="An optional prefix in the path"),
     namespace: str = Path(..., description="A namespace identifier as a single string. Multipart namespace parts should be separated by the unit separator (&#x60;0x1F&#x60;) byte."),
-    # token_OAuth2: TokenModel = Security(
-    #     get_token_OAuth2, scopes=["catalog"]
-    # ),
-    # token_BearerAuth: TokenModel = Security(
-    #     get_token_BearerAuth
-    # ),
 ) -> None:
     """Check if a namespace exists. The response does not contain a body."""
     try:
@@ -348,12 +312,6 @@ def update_namespace_properties(
     # prefix: str = Path(..., description="An optional prefix in the path"),
     namespace: str = Path(..., description="A namespace identifier as a single string. Multipart namespace parts should be separated by the unit separator (&#x60;0x1F&#x60;) byte."),
     update_namespace_properties_request: UpdateNamespacePropertiesRequest = Body(None, description=""),
-    # token_OAuth2: TokenModel = Security(
-    #     get_token_OAuth2, scopes=["catalog"]
-    # ),
-    # token_BearerAuth: TokenModel = Security(
-    #     get_token_BearerAuth
-    # ),
 ) -> UpdateNamespacePropertiesResponse:
     """Set and/or remove properties on a namespace. The request body specifies a list of properties to remove and a map of key value pairs to update. Properties that are not in the request are not modified or removed by this call. Server implementations are not required to support namespace properties."""
     try:
@@ -391,12 +349,6 @@ def list_tables(
     namespace: str = Path(..., description="A namespace identifier as a single string. Multipart namespace parts should be separated by the unit separator (&#x60;0x1F&#x60;) byte."),
     page_token: str = Query(None, description="", alias="pageToken"),
     page_size: int = Query(None, description="For servers that support pagination, this signals an upper bound of the number of results that a client will receive. For servers that do not support pagination, clients may receive results larger than the indicated &#x60;pageSize&#x60;.", alias="pageSize", ge=1),
-    # token_OAuth2: TokenModel = Security(
-    #     get_token_OAuth2, scopes=["catalog"]
-    # ),
-    # token_BearerAuth: TokenModel = Security(
-    #     get_token_BearerAuth
-    # ),
 ) -> ListTablesResponse:
     """Return all table identifiers under this namespace"""
     identifiers = catalog.list_tables(namespace=namespace)
@@ -446,12 +398,6 @@ def create_table(
     namespace: str = Path(..., description="A namespace identifier as a single string. Multipart namespace parts should be separated by the unit separator (&#x60;0x1F&#x60;) byte."),
     # x_iceberg_access_delegation: str = Header(None, description="Optional signal to the server that the client supports delegated access via a comma-separated list of access mechanisms.  The server may choose to supply access via any or none of the requested mechanisms.  Specific properties and handling for &#x60;vended-credentials&#x60; is documented in the &#x60;LoadTableResult&#x60; schema section of this spec document.  The protocol and specification for &#x60;remote-signing&#x60; is documented in  the &#x60;s3-signer-open-api.yaml&#x60; OpenApi spec in the &#x60;aws&#x60; module. "),
     create_table_request: CreateTableRequest = Body(None, description=""),
-    # token_OAuth2: TokenModel = Security(
-    #     get_token_OAuth2, scopes=["catalog"]
-    # ),
-    # token_BearerAuth: TokenModel = Security(
-    #     get_token_BearerAuth
-    # ),
 ) -> LoadTableResult:
         # identifier: Union[str, Identifier],
         # schema: Union[Schema, "pa.Schema"],
@@ -512,12 +458,6 @@ def register_table(
     # prefix: str = Path(..., description="An optional prefix in the path"),
     namespace: str = Path(..., description="A namespace identifier as a single string. Multipart namespace parts should be separated by the unit separator (&#x60;0x1F&#x60;) byte."),
     register_table_request: RegisterTableRequest = Body(None, description=""),
-    # token_OAuth2: TokenModel = Security(
-    #     get_token_OAuth2, scopes=["catalog"]
-    # ),
-    # token_BearerAuth: TokenModel = Security(
-    #     get_token_BearerAuth
-    # ),
 ) -> LoadTableResult:
     """Register a table using given metadata file location."""
     tbl = catalog.register_table(identifier=(namespace, register_table_request.name), metadata_location=register_table_request.metadata_location)
@@ -546,12 +486,6 @@ def load_table(
     table: str = Path(..., description="A table name"),
     x_iceberg_access_delegation: str = Header(None, description="Optional signal to the server that the client supports delegated access via a comma-separated list of access mechanisms.  The server may choose to supply access via any or none of the requested mechanisms.  Specific properties and handling for &#x60;vended-credentials&#x60; is documented in the &#x60;LoadTableResult&#x60; schema section of this spec document.  The protocol and specification for &#x60;remote-signing&#x60; is documented in  the &#x60;s3-signer-open-api.yaml&#x60; OpenApi spec in the &#x60;aws&#x60; module. "),
     snapshots: str = Query(None, description="The snapshots to return in the body of the metadata. Setting the value to &#x60;all&#x60; would return the full set of snapshots currently valid for the table. Setting the value to &#x60;refs&#x60; would load all snapshots referenced by branches or tags. Default if no param is provided is &#x60;all&#x60;.", alias="snapshots"),
-    # token_OAuth2: TokenModel = Security(
-    #     get_token_OAuth2, scopes=["catalog"]
-    # ),
-    # token_BearerAuth: TokenModel = Security(
-    #     get_token_BearerAuth
-    # ),
 ) -> LoadTableResult:
     """Load a table from the catalog.  The response contains both configuration and table metadata. The configuration, if non-empty is used as additional configuration for the table that overrides catalog configuration. For example, this configuration may change the FileIO implementation to be used for the table.  The response also contains the table&#39;s full metadata, matching the table metadata JSON file.  The catalog configuration may contain credentials that should be used for subsequent requests for the table. The configuration key \&quot;token\&quot; is used to pass an access token to be used as a bearer token for table requests. Otherwise, a token may be passed using a RFC 8693 token type as a configuration key. For example, \&quot;urn:ietf:params:oauth:token-type:jwt&#x3D;&lt;JWT-token&gt;\&quot;."""
     try:
@@ -601,12 +535,6 @@ def update_table(
     namespace: str = Path(..., description="A namespace identifier as a single string. Multipart namespace parts should be separated by the unit separator (&#x60;0x1F&#x60;) byte."),
     table: str = Path(..., description="A table name"),
     commit_table_request: CommitTableRequest = Body(None, description=""),
-    # token_OAuth2: TokenModel = Security(
-    #     get_token_OAuth2, scopes=["catalog"]
-    # ),
-    # token_BearerAuth: TokenModel = Security(
-    #     get_token_BearerAuth
-    # ),
 ) -> CommitTableResponse:
     """Commit updates to a table.  Commits have two parts, requirements and updates. Requirements are assertions that will be validated before attempting to make and commit changes. For example, &#x60;assert-ref-snapshot-id&#x60; will check that a named ref&#39;s snapshot ID has a certain value.  Updates are changes to make to table metadata. For example, after asserting that the current main ref is at the expected snapshot, a commit may add a new child snapshot and set the ref to the new snapshot id.  Create table transactions that are started by createTable with &#x60;stage-create&#x60; set to true are committed using this route. Transactions should include all changes to the table, including table initialization, like AddSchemaUpdate and SetCurrentSchemaUpdate. The &#x60;assert-create&#x60; requirement is used to ensure that the table was not created concurrently."""
     return catalog._commit_table(commit_table_request)
@@ -632,12 +560,6 @@ def drop_table(
     namespace: str = Path(..., description="A namespace identifier as a single string. Multipart namespace parts should be separated by the unit separator (&#x60;0x1F&#x60;) byte."),
     table: str = Path(..., description="A table name"),
     purge_requested: bool = Query(False, description="Whether the user requested to purge the underlying table&#39;s data and metadata", alias="purgeRequested"),
-    # token_OAuth2: TokenModel = Security(
-    #     get_token_OAuth2, scopes=["catalog"]
-    # ),
-    # token_BearerAuth: TokenModel = Security(
-    #     get_token_BearerAuth
-    # ),
 ) -> None:
     """Remove a table from the catalog"""
     return catalog.drop_table(identifier=(namespace, table))
@@ -663,12 +585,6 @@ def table_exists(
     # prefix: str = Path(..., description="An optional prefix in the path"),
     namespace: str = Path(..., description="A namespace identifier as a single string. Multipart namespace parts should be separated by the unit separator (&#x60;0x1F&#x60;) byte."),
     table: str = Path(..., description="A table name"),
-    # token_OAuth2: TokenModel = Security(
-    #     get_token_OAuth2, scopes=["catalog"]
-    # ),
-    # token_BearerAuth: TokenModel = Security(
-    #     get_token_BearerAuth
-    # ),
 ) -> None:
     """Check if a table exists within a given namespace. The response does not contain a body."""
     catalog.load_table(identifier=(namespace, table))
@@ -703,12 +619,6 @@ class CommitTransactionRequest(BaseModel):
 def commit_transaction(
     # prefix: str = Path(..., description="An optional prefix in the path"),
     commit_transaction_request: CommitTransactionRequest = Body(None, description="Commit updates to multiple tables in an atomic operation  A commit for a single table consists of a table identifier with requirements and updates. Requirements are assertions that will be validated before attempting to make and commit changes. For example, &#x60;assert-ref-snapshot-id&#x60; will check that a named ref&#39;s snapshot ID has a certain value.  Updates are changes to make to table metadata. For example, after asserting that the current main ref is at the expected snapshot, a commit may add a new child snapshot and set the ref to the new snapshot id."),
-    # token_OAuth2: TokenModel = Security(
-    #     get_token_OAuth2, scopes=["catalog"]
-    # ),
-    # token_BearerAuth: TokenModel = Security(
-    #     get_token_BearerAuth
-    # ),
 ) -> None:
     ...
 
