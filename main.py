@@ -68,6 +68,13 @@ catalog.create_tables()
 #     },
 # )
 
+@app.get("/reset")
+def reset():
+    catalog.destroy_tables()
+    catalog.create_tables()
+    return {"status": "ok"}
+
+
 # /v1/config
 class CatalogConfig(BaseModel):
     """
