@@ -5,11 +5,33 @@ from pydantic import BaseModel, Field, StrictStr
 
 from pyiceberg.table import TableIdentifier
 from pyiceberg.table.metadata import TableMetadata
-from pyiceberg.exceptions import TableAlreadyExistsError, NoSuchTableError, NamespaceAlreadyExistsError, NoSuchNamespaceError, NamespaceNotEmptyError, CommitFailedException
+from pyiceberg.exceptions import (
+    TableAlreadyExistsError,
+    NoSuchTableError,
+    NamespaceAlreadyExistsError,
+    NoSuchNamespaceError,
+    NamespaceNotEmptyError,
+    CommitFailedException,
+)
 
 from models.config import CatalogConfig
-from models.request import CommitTableRequest, CommitTransactionRequest, CreateNamespaceRequest, CreateTableRequest, RegisterTableRequest, RenameTableRequest, UpdateNamespacePropertiesRequest
-from models.response import CommitTableResponse, CreateNamespaceResponse, GetNamespaceResponse, ListNamespacesResponse, ListTablesResponse, UpdateNamespacePropertiesResponse
+from models.request import (
+    CommitTableRequest,
+    CommitTransactionRequest,
+    CreateNamespaceRequest,
+    CreateTableRequest,
+    RegisterTableRequest,
+    RenameTableRequest,
+    UpdateNamespacePropertiesRequest,
+)
+from models.response import (
+    CommitTableResponse,
+    CreateNamespaceResponse,
+    GetNamespaceResponse,
+    ListNamespacesResponse,
+    ListTablesResponse,
+    UpdateNamespacePropertiesResponse,
+)
 
 app = FastAPI()
 
@@ -48,6 +70,7 @@ catalog.create_tables()
 #     },
 # )
 
+
 @app.get("/reset")
 def reset():
     catalog.destroy_tables()
@@ -63,9 +86,13 @@ def reset():
     response_model_by_alias=True,
 )
 def get_config(
-    warehouse: str = Query(None, description="Warehouse location or identifier to request from the service", alias="warehouse"),
+    warehouse: str = Query(
+        None,
+        description="Warehouse location or identifier to request from the service",
+        alias="warehouse",
+    ),
 ) -> CatalogConfig:
-    """ All REST clients should first call this route to get catalog configuration properties from the server to configure the catalog and its HTTP client. Configuration from the server consists of two sets of key/value pairs. - defaults -  properties that should be used as default configuration; applied before client configuration - overrides - properties that should be used to override client configuration; applied after defaults and client configuration  Catalog configuration is constructed by setting the defaults, then client- provided configuration, and finally overrides. The final property set is then used to configure the catalog.  For example, a default configuration property might set the size of the client pool, which can be replaced with a client-specific setting. An override might be used to set the warehouse location, which is stored on the server rather than in client configuration.  Common catalog configuration settings are documented at https://iceberg.apache.org/docs/latest/configuration/#catalog-properties """
+    """All REST clients should first call this route to get catalog configuration properties from the server to configure the catalog and its HTTP client. Configuration from the server consists of two sets of key/value pairs. - defaults -  properties that should be used as default configuration; applied before client configuration - overrides - properties that should be used to override client configuration; applied after defaults and client configuration  Catalog configuration is constructed by setting the defaults, then client- provided configuration, and finally overrides. The final property set is then used to configure the catalog.  For example, a default configuration property might set the size of the client pool, which can be replaced with a client-specific setting. An override might be used to set the warehouse location, which is stored on the server rather than in client configuration.  Common catalog configuration settings are documented at https://iceberg.apache.org/docs/latest/configuration/#catalog-properties"""
     return CatalogConfig(overrides={}, defaults={})
 
 
@@ -85,8 +112,11 @@ def create_namespace(
     try:
         catalog.create_namespace(namespace, properties)
     except NamespaceAlreadyExistsError:
-        raise HTTPException(status_code=409, detail=f"Namespace already exists: {namespace}")
+        raise HTTPException(
+            status_code=409, detail=f"Namespace already exists: {namespace}"
+        )
     return CreateNamespaceResponse(namespace=namespace, properties=properties)
+
 
 @app.get(
     "/v1/namespaces",
@@ -97,14 +127,21 @@ def create_namespace(
 def list_namespaces(
     # page_token: str = Query(None, description="", alias="pageToken"),
     # page_size: int = Query(None, description="For servers that support pagination, this signals an upper bound of the number of results that a client will receive. For servers that do not support pagination, clients may receive results larger than the indicated &#x60;pageSize&#x60;.", alias="pageSize", ge=1),
-    parent: str = Query(None, description="An optional namespace, underneath which to list namespaces. If not provided or empty, all top-level namespaces should be listed. If parent is a multipart namespace, the parts must be separated by the unit separator (&#x60;0x1F&#x60;) byte.", alias="parent"),
+    parent: str = Query(
+        None,
+        description="An optional namespace, underneath which to list namespaces. If not provided or empty, all top-level namespaces should be listed. If parent is a multipart namespace, the parts must be separated by the unit separator (&#x60;0x1F&#x60;) byte.",
+        alias="parent",
+    ),
 ) -> ListNamespacesResponse:
     """List all namespaces at a certain level, optionally starting from a given parent namespace. If table accounting.tax.paid.info exists, using &#39;SELECT NAMESPACE IN accounting&#39; would translate into &#x60;GET /namespaces?parent&#x3D;accounting&#x60; and must return a namespace, [\&quot;accounting\&quot;, \&quot;tax\&quot;] only. Using &#39;SELECT NAMESPACE IN accounting.tax&#39; would translate into &#x60;GET /namespaces?parent&#x3D;accounting%1Ftax&#x60; and must return a namespace, [\&quot;accounting\&quot;, \&quot;tax\&quot;, \&quot;paid\&quot;]. If &#x60;parent&#x60; is not provided, all top-level namespaces should be listed."""
     try:
         namespaces = catalog.list_namespaces(parent)
     except NoSuchNamespaceError:
-        raise HTTPException(status_code=404, detail=f"Namespace does not exist: {parent}")
+        raise HTTPException(
+            status_code=404, detail=f"Namespace does not exist: {parent}"
+        )
     return ListNamespacesResponse(namespaces=namespaces)
+
 
 # /v1/{prefix}/namespaces/{namespace}
 @app.get(
@@ -114,14 +151,20 @@ def list_namespaces(
     response_model_by_alias=True,
 )
 def load_namespace_metadata(
-    namespace: str = Path(..., description="A namespace identifier as a single string. Multipart namespace parts should be separated by the unit separator (&#x60;0x1F&#x60;) byte."),
+    namespace: str = Path(
+        ...,
+        description="A namespace identifier as a single string. Multipart namespace parts should be separated by the unit separator (&#x60;0x1F&#x60;) byte.",
+    ),
 ) -> GetNamespaceResponse:
     """Return all stored metadata properties for a given namespace"""
     try:
         properties = catalog.load_namespace_properties(namespace=namespace)
     except NoSuchNamespaceError:
-        raise HTTPException(status_code=404, detail=f"Namespace does not exist: {namespace}")
+        raise HTTPException(
+            status_code=404, detail=f"Namespace does not exist: {namespace}"
+        )
     return GetNamespaceResponse(namespace=[namespace], properties=properties)
+
 
 @app.delete(
     "/v1/namespaces/{namespace}",
@@ -130,14 +173,21 @@ def load_namespace_metadata(
     response_model_by_alias=True,
 )
 def drop_namespace(
-    namespace: str = Path(..., description="A namespace identifier as a single string. Multipart namespace parts should be separated by the unit separator (&#x60;0x1F&#x60;) byte."),
+    namespace: str = Path(
+        ...,
+        description="A namespace identifier as a single string. Multipart namespace parts should be separated by the unit separator (&#x60;0x1F&#x60;) byte.",
+    ),
 ) -> None:
     try:
         catalog.drop_namespace(namespace)
     except NoSuchNamespaceError:
-        raise HTTPException(status_code=404, detail=f"Namespace does not exist: {(namespace,)}")
+        raise HTTPException(
+            status_code=404, detail=f"Namespace does not exist: {(namespace,)}"
+        )
     except NamespaceNotEmptyError:
-        raise HTTPException(status_code=409, detail=f"Namespace is not empty: {(namespace,)}")
+        raise HTTPException(
+            status_code=409, detail=f"Namespace is not empty: {(namespace,)}"
+        )
 
 
 @app.head(
@@ -147,13 +197,19 @@ def drop_namespace(
     response_model_by_alias=True,
 )
 def namespace_exists(
-    namespace: str = Path(..., description="A namespace identifier as a single string. Multipart namespace parts should be separated by the unit separator (&#x60;0x1F&#x60;) byte."),
+    namespace: str = Path(
+        ...,
+        description="A namespace identifier as a single string. Multipart namespace parts should be separated by the unit separator (&#x60;0x1F&#x60;) byte.",
+    ),
 ) -> None:
     """Check if a namespace exists. The response does not contain a body."""
     try:
         catalog.load_namespace_properties(namespace=namespace)
     except NoSuchNamespaceError:
-        raise HTTPException(status_code=404, detail=f"Namespace does not exist: {namespace}")
+        raise HTTPException(
+            status_code=404, detail=f"Namespace does not exist: {namespace}"
+        )
+
 
 # /v1/{prefix}/namespaces/{namespace}/properties
 @app.post(
@@ -163,15 +219,31 @@ def namespace_exists(
     response_model_by_alias=True,
 )
 def update_namespace_properties(
-    namespace: str = Path(..., description="A namespace identifier as a single string. Multipart namespace parts should be separated by the unit separator (&#x60;0x1F&#x60;) byte."),
-    update_namespace_properties_request: UpdateNamespacePropertiesRequest = Body(None, description=""),
+    namespace: str = Path(
+        ...,
+        description="A namespace identifier as a single string. Multipart namespace parts should be separated by the unit separator (&#x60;0x1F&#x60;) byte.",
+    ),
+    update_namespace_properties_request: UpdateNamespacePropertiesRequest = Body(
+        None, description=""
+    ),
 ) -> UpdateNamespacePropertiesResponse:
     """Set and/or remove properties on a namespace. The request body specifies a list of properties to remove and a map of key value pairs to update. Properties that are not in the request are not modified or removed by this call. Server implementations are not required to support namespace properties."""
     try:
-        summary = catalog.update_namespace_properties(namespace=namespace, removals=set(update_namespace_properties_request.removals), updates=update_namespace_properties_request.updates)
+        summary = catalog.update_namespace_properties(
+            namespace=namespace,
+            removals=set(update_namespace_properties_request.removals),
+            updates=update_namespace_properties_request.updates,
+        )
     except NoSuchNamespaceError:
-        raise HTTPException(status_code=404, detail=f"Namespace does not exist: {namespace}")
-    return UpdateNamespacePropertiesResponse(updated=sorted(summary.updated), removed=sorted(summary.removed), missing=sorted(summary.missing))
+        raise HTTPException(
+            status_code=404, detail=f"Namespace does not exist: {namespace}"
+        )
+    return UpdateNamespacePropertiesResponse(
+        updated=sorted(summary.updated),
+        removed=sorted(summary.removed),
+        missing=sorted(summary.missing),
+    )
+
 
 # /v1/{prefix}/namespaces/{namespace}/tables
 @app.get(
@@ -181,7 +253,10 @@ def update_namespace_properties(
     response_model_by_alias=True,
 )
 def list_tables(
-    namespace: str = Path(..., description="A namespace identifier as a single string. Multipart namespace parts should be separated by the unit separator (&#x60;0x1F&#x60;) byte."),
+    namespace: str = Path(
+        ...,
+        description="A namespace identifier as a single string. Multipart namespace parts should be separated by the unit separator (&#x60;0x1F&#x60;) byte.",
+    ),
     # page_token: str = Query(None, description="", alias="pageToken"),
     # page_size: int = Query(None, description="For servers that support pagination, this signals an upper bound of the number of results that a client will receive. For servers that do not support pagination, clients may receive results larger than the indicated &#x60;pageSize&#x60;.", alias="pageSize", ge=1),
 ) -> ListTablesResponse:
@@ -189,16 +264,25 @@ def list_tables(
     try:
         identifiers = catalog.list_tables(namespace=namespace)
     except NoSuchNamespaceError:
-        raise HTTPException(status_code=404, detail=f"Namespace does not exist: {namespace}")
-    table_identifiers = [TableIdentifier(namespace=[identifier[0]], name=identifier[1]) for identifier in identifiers] 
+        raise HTTPException(
+            status_code=404, detail=f"Namespace does not exist: {namespace}"
+        )
+    table_identifiers = [
+        TableIdentifier(namespace=[identifier[0]], name=identifier[1])
+        for identifier in identifiers
+    ]
     return ListTablesResponse(identifiers=table_identifiers)
 
 
 class LoadTableResult(BaseModel):
     """
-    Result used when a table is successfully loaded.   The table metadata JSON is returned in the `metadata` field. The corresponding file location of table metadata should be returned in the `metadata-location` field, unless the metadata is not yet committed. For example, a create transaction may return metadata that is staged but not committed. Clients can check whether metadata has changed by comparing metadata locations after the table has been created.   The `config` map returns table-specific configuration for the table's resources, including its HTTP client and FileIO. For example, config may contain a specific FileIO implementation class for the table depending on its underlying storage.   The following configurations should be respected by clients:  ## General Configurations  - `token`: Authorization bearer token to use for table requests if OAuth2 security is enabled   ## AWS Configurations  The following configurations should be respected when working with tables stored in AWS S3  - `client.region`: region to configure client for making requests to AWS  - `s3.access-key-id`: id for for credentials that provide access to the data in S3  - `s3.secret-access-key`: secret for credentials that provide access to data in S3   - `s3.session-token`: if present, this value should be used for as the session token   - `s3.remote-signing-enabled`: if `true` remote signing should be performed as described in the `s3-signer-open-api.yaml` specification 
-    """ # noqa: E501
-    metadata_location: Optional[StrictStr] = Field(default=None, description="May be null if the table is staged as part of a transaction")#, alias="metadata-location")
+    Result used when a table is successfully loaded.   The table metadata JSON is returned in the `metadata` field. The corresponding file location of table metadata should be returned in the `metadata-location` field, unless the metadata is not yet committed. For example, a create transaction may return metadata that is staged but not committed. Clients can check whether metadata has changed by comparing metadata locations after the table has been created.   The `config` map returns table-specific configuration for the table's resources, including its HTTP client and FileIO. For example, config may contain a specific FileIO implementation class for the table depending on its underlying storage.   The following configurations should be respected by clients:  ## General Configurations  - `token`: Authorization bearer token to use for table requests if OAuth2 security is enabled   ## AWS Configurations  The following configurations should be respected when working with tables stored in AWS S3  - `client.region`: region to configure client for making requests to AWS  - `s3.access-key-id`: id for for credentials that provide access to the data in S3  - `s3.secret-access-key`: secret for credentials that provide access to data in S3   - `s3.session-token`: if present, this value should be used for as the session token   - `s3.remote-signing-enabled`: if `true` remote signing should be performed as described in the `s3-signer-open-api.yaml` specification
+    """  # noqa: E501
+
+    metadata_location: Optional[StrictStr] = Field(
+        default=None,
+        description="May be null if the table is staged as part of a transaction",
+    )  # , alias="metadata-location")
     metadata: TableMetadata
     config: Optional[Dict[str, StrictStr]] = None
 
@@ -210,7 +294,10 @@ class LoadTableResult(BaseModel):
     response_model_by_alias=True,
 )
 def create_table(
-    namespace: str = Path(..., description="A namespace identifier as a single string. Multipart namespace parts should be separated by the unit separator (&#x60;0x1F&#x60;) byte."),
+    namespace: str = Path(
+        ...,
+        description="A namespace identifier as a single string. Multipart namespace parts should be separated by the unit separator (&#x60;0x1F&#x60;) byte.",
+    ),
     # x_iceberg_access_delegation: str = Header(None, description="Optional signal to the server that the client supports delegated access via a comma-separated list of access mechanisms.  The server may choose to supply access via any or none of the requested mechanisms.  Specific properties and handling for &#x60;vended-credentials&#x60; is documented in the &#x60;LoadTableResult&#x60; schema section of this spec document.  The protocol and specification for &#x60;remote-signing&#x60; is documented in  the &#x60;s3-signer-open-api.yaml&#x60; OpenApi spec in the &#x60;aws&#x60; module. "),
     create_table_request: CreateTableRequest = Body(None, description=""),
 ) -> LoadTableResult:
@@ -218,16 +305,23 @@ def create_table(
     try:
         identifier = (namespace, create_table_request.name)
         tbl = catalog.create_table(
-            identifier=identifier, 
-            schema=create_table_request.schema, 
+            identifier=identifier,
+            schema=create_table_request.schema,
             location=create_table_request.location,
-            partition_spec=create_table_request.partition_spec, 
+            partition_spec=create_table_request.partition_spec,
             sort_order=create_table_request.write_order,
-            properties=create_table_request.properties
+            properties=create_table_request.properties,
         )
     except TableAlreadyExistsError:
-        raise HTTPException(status_code=409, detail=f"Table already exists: {identifier}")
-    return LoadTableResult(metadata_location=tbl.metadata_location, metadata=tbl.metadata, config=tbl.properties)
+        raise HTTPException(
+            status_code=409, detail=f"Table already exists: {identifier}"
+        )
+    return LoadTableResult(
+        metadata_location=tbl.metadata_location,
+        metadata=tbl.metadata,
+        config=tbl.properties,
+    )
+
 
 # /v1/{prefix}/namespaces/{namespace}/register
 @app.post(
@@ -237,17 +331,33 @@ def create_table(
     response_model_by_alias=True,
 )
 def register_table(
-    namespace: str = Path(..., description="A namespace identifier as a single string. Multipart namespace parts should be separated by the unit separator (&#x60;0x1F&#x60;) byte."),
+    namespace: str = Path(
+        ...,
+        description="A namespace identifier as a single string. Multipart namespace parts should be separated by the unit separator (&#x60;0x1F&#x60;) byte.",
+    ),
     register_table_request: RegisterTableRequest = Body(None, description=""),
 ) -> LoadTableResult:
     """Register a table using given metadata file location."""
     try:
-        tbl = catalog.register_table(identifier=(namespace, register_table_request.name), metadata_location=register_table_request.metadata_location)
+        tbl = catalog.register_table(
+            identifier=(namespace, register_table_request.name),
+            metadata_location=register_table_request.metadata_location,
+        )
     except NoSuchNamespaceError:
-        raise HTTPException(status_code=404, detail=f"Namespace does not exist: {namespace}")
+        raise HTTPException(
+            status_code=404, detail=f"Namespace does not exist: {namespace}"
+        )
     except TableAlreadyExistsError:
-        raise HTTPException(status_code=409, detail=f"Table already exists: {(namespace, register_table_request.name)}")
-    return LoadTableResult(metadata_location=tbl.metadata_location, metadata=tbl.metadata, config=tbl.properties)
+        raise HTTPException(
+            status_code=409,
+            detail=f"Table already exists: {(namespace, register_table_request.name)}",
+        )
+    return LoadTableResult(
+        metadata_location=tbl.metadata_location,
+        metadata=tbl.metadata,
+        config=tbl.properties,
+    )
+
 
 # /v1/{prefix}/namespaces/{namespace}/tables/{table}
 @app.get(
@@ -257,18 +367,34 @@ def register_table(
     response_model_by_alias=True,
 )
 def load_table(
-    namespace: str = Path(..., description="A namespace identifier as a single string. Multipart namespace parts should be separated by the unit separator (&#x60;0x1F&#x60;) byte."),
+    namespace: str = Path(
+        ...,
+        description="A namespace identifier as a single string. Multipart namespace parts should be separated by the unit separator (&#x60;0x1F&#x60;) byte.",
+    ),
     table: str = Path(..., description="A table name"),
-    x_iceberg_access_delegation: str = Header(None, description="Optional signal to the server that the client supports delegated access via a comma-separated list of access mechanisms.  The server may choose to supply access via any or none of the requested mechanisms.  Specific properties and handling for &#x60;vended-credentials&#x60; is documented in the &#x60;LoadTableResult&#x60; schema section of this spec document.  The protocol and specification for &#x60;remote-signing&#x60; is documented in  the &#x60;s3-signer-open-api.yaml&#x60; OpenApi spec in the &#x60;aws&#x60; module. "),
-    snapshots: str = Query(None, description="The snapshots to return in the body of the metadata. Setting the value to &#x60;all&#x60; would return the full set of snapshots currently valid for the table. Setting the value to &#x60;refs&#x60; would load all snapshots referenced by branches or tags. Default if no param is provided is &#x60;all&#x60;.", alias="snapshots"),
+    x_iceberg_access_delegation: str = Header(
+        None,
+        description="Optional signal to the server that the client supports delegated access via a comma-separated list of access mechanisms.  The server may choose to supply access via any or none of the requested mechanisms.  Specific properties and handling for &#x60;vended-credentials&#x60; is documented in the &#x60;LoadTableResult&#x60; schema section of this spec document.  The protocol and specification for &#x60;remote-signing&#x60; is documented in  the &#x60;s3-signer-open-api.yaml&#x60; OpenApi spec in the &#x60;aws&#x60; module. ",
+    ),
+    snapshots: str = Query(
+        None,
+        description="The snapshots to return in the body of the metadata. Setting the value to &#x60;all&#x60; would return the full set of snapshots currently valid for the table. Setting the value to &#x60;refs&#x60; would load all snapshots referenced by branches or tags. Default if no param is provided is &#x60;all&#x60;.",
+        alias="snapshots",
+    ),
 ) -> LoadTableResult:
     """Load a table from the catalog.  The response contains both configuration and table metadata. The configuration, if non-empty is used as additional configuration for the table that overrides catalog configuration. For example, this configuration may change the FileIO implementation to be used for the table.  The response also contains the table&#39;s full metadata, matching the table metadata JSON file.  The catalog configuration may contain credentials that should be used for subsequent requests for the table. The configuration key \&quot;token\&quot; is used to pass an access token to be used as a bearer token for table requests. Otherwise, a token may be passed using a RFC 8693 token type as a configuration key. For example, \&quot;urn:ietf:params:oauth:token-type:jwt&#x3D;&lt;JWT-token&gt;\&quot;."""
     try:
         identifier = (namespace, table)
         tbl = catalog.load_table(identifier=identifier)
     except NoSuchTableError:
-        raise HTTPException(status_code=404, detail=f"Table does not exist: {identifier}")
-    return LoadTableResult(metadata_location=tbl.metadata_location, metadata=tbl.metadata, config=tbl.properties)
+        raise HTTPException(
+            status_code=404, detail=f"Table does not exist: {identifier}"
+        )
+    return LoadTableResult(
+        metadata_location=tbl.metadata_location,
+        metadata=tbl.metadata,
+        config=tbl.properties,
+    )
 
 
 @app.post(
@@ -278,18 +404,26 @@ def load_table(
     response_model_by_alias=True,
 )
 def update_table(
-    namespace: str = Path(..., description="A namespace identifier as a single string. Multipart namespace parts should be separated by the unit separator (&#x60;0x1F&#x60;) byte."),
+    namespace: str = Path(
+        ...,
+        description="A namespace identifier as a single string. Multipart namespace parts should be separated by the unit separator (&#x60;0x1F&#x60;) byte.",
+    ),
     table: str = Path(..., description="A table name"),
     commit_table_request: CommitTableRequest = Body(None, description=""),
 ) -> CommitTableResponse:
     """Commit updates to a table.  Commits have two parts, requirements and updates. Requirements are assertions that will be validated before attempting to make and commit changes. For example, &#x60;assert-ref-snapshot-id&#x60; will check that a named ref&#39;s snapshot ID has a certain value.  Updates are changes to make to table metadata. For example, after asserting that the current main ref is at the expected snapshot, a commit may add a new child snapshot and set the ref to the new snapshot id.  Create table transactions that are started by createTable with &#x60;stage-create&#x60; set to true are committed using this route. Transactions should include all changes to the table, including table initialization, like AddSchemaUpdate and SetCurrentSchemaUpdate. The &#x60;assert-create&#x60; requirement is used to ensure that the table was not created concurrently."""
-    try: 
+    try:
         resp = catalog._commit_table(commit_table_request)
     except NoSuchTableError:
-        raise HTTPException(status_code=404, detail=f"Table does not exist: {(namespace, table)}")
+        raise HTTPException(
+            status_code=404, detail=f"Table does not exist: {(namespace, table)}"
+        )
     except CommitFailedException:
-        raise HTTPException(status_code=409, detail=f"Commit failed: {(namespace, table)}")
+        raise HTTPException(
+            status_code=409, detail=f"Commit failed: {(namespace, table)}"
+        )
     return resp
+
 
 @app.delete(
     "/v1/namespaces/{namespace}/tables/{table}",
@@ -298,15 +432,24 @@ def update_table(
     response_model_by_alias=True,
 )
 def drop_table(
-    namespace: str = Path(..., description="A namespace identifier as a single string. Multipart namespace parts should be separated by the unit separator (&#x60;0x1F&#x60;) byte."),
+    namespace: str = Path(
+        ...,
+        description="A namespace identifier as a single string. Multipart namespace parts should be separated by the unit separator (&#x60;0x1F&#x60;) byte.",
+    ),
     table: str = Path(..., description="A table name"),
-    purge_requested: bool = Query(False, description="Whether the user requested to purge the underlying table&#39;s data and metadata", alias="purgeRequested"),
+    purge_requested: bool = Query(
+        False,
+        description="Whether the user requested to purge the underlying table&#39;s data and metadata",
+        alias="purgeRequested",
+    ),
 ) -> None:
     """Remove a table from the catalog"""
     try:
         catalog.drop_table(identifier=(namespace, table))
     except NoSuchTableError:
-        raise HTTPException(status_code=404, detail=f"Table does not exist: {(namespace, table)}")
+        raise HTTPException(
+            status_code=404, detail=f"Table does not exist: {(namespace, table)}"
+        )
 
 
 @app.head(
@@ -316,14 +459,20 @@ def drop_table(
     response_model_by_alias=True,
 )
 def table_exists(
-    namespace: str = Path(..., description="A namespace identifier as a single string. Multipart namespace parts should be separated by the unit separator (&#x60;0x1F&#x60;) byte."),
+    namespace: str = Path(
+        ...,
+        description="A namespace identifier as a single string. Multipart namespace parts should be separated by the unit separator (&#x60;0x1F&#x60;) byte.",
+    ),
     table: str = Path(..., description="A table name"),
 ) -> None:
     """Check if a table exists within a given namespace. The response does not contain a body."""
     try:
         catalog.load_table(identifier=(namespace, table))
     except NoSuchTableError:
-        raise HTTPException(status_code=404, detail=f"Table does not exist: {(namespace, table)}")
+        raise HTTPException(
+            status_code=404, detail=f"Table does not exist: {(namespace, table)}"
+        )
+
 
 # /v1/{prefix}/transactions/commit
 @app.post(
@@ -333,9 +482,12 @@ def table_exists(
     response_model_by_alias=True,
 )
 def commit_transaction(
-    commit_transaction_request: CommitTransactionRequest = Body(None, description="Commit updates to multiple tables in an atomic operation  A commit for a single table consists of a table identifier with requirements and updates. Requirements are assertions that will be validated before attempting to make and commit changes. For example, &#x60;assert-ref-snapshot-id&#x60; will check that a named ref&#39;s snapshot ID has a certain value.  Updates are changes to make to table metadata. For example, after asserting that the current main ref is at the expected snapshot, a commit may add a new child snapshot and set the ref to the new snapshot id."),
-) -> None:
-    ...
+    commit_transaction_request: CommitTransactionRequest = Body(
+        None,
+        description="Commit updates to multiple tables in an atomic operation  A commit for a single table consists of a table identifier with requirements and updates. Requirements are assertions that will be validated before attempting to make and commit changes. For example, &#x60;assert-ref-snapshot-id&#x60; will check that a named ref&#39;s snapshot ID has a certain value.  Updates are changes to make to table metadata. For example, after asserting that the current main ref is at the expected snapshot, a commit may add a new child snapshot and set the ref to the new snapshot id.",
+    ),
+) -> None: ...
+
 
 # /v1/{prefix}/tables/rename
 @app.post(
@@ -345,19 +497,32 @@ def commit_transaction(
     response_model_by_alias=True,
 )
 def rename_table(
-    rename_table_request: RenameTableRequest = Body(None, description="Current table identifier to rename and new table identifier to rename to"),
+    rename_table_request: RenameTableRequest = Body(
+        None,
+        description="Current table identifier to rename and new table identifier to rename to",
+    ),
 ) -> None:
     """Rename a table from one identifier to another. It&#39;s valid to move a table across namespaces, but the server implementation is not required to support it."""
-    source = (".".join(rename_table_request.source.namespace.root), rename_table_request.source.name)
-    destination = (".".join(rename_table_request.destination.namespace.root), rename_table_request.destination.name)
+    source = (
+        ".".join(rename_table_request.source.namespace.root),
+        rename_table_request.source.name,
+    )
+    destination = (
+        ".".join(rename_table_request.destination.namespace.root),
+        rename_table_request.destination.name,
+    )
     try:
         catalog.rename_table(source, destination)
     except NoSuchNamespaceError:
-        raise HTTPException(status_code=404, detail=f"Namespace does not exist: {source}")
+        raise HTTPException(
+            status_code=404, detail=f"Namespace does not exist: {source}"
+        )
     except NoSuchTableError:
         raise HTTPException(status_code=404, detail=f"Table does not exist: {source}")
     except TableAlreadyExistsError:
-        raise HTTPException(status_code=409, detail=f"Table already exists: {destination}")
+        raise HTTPException(
+            status_code=409, detail=f"Table already exists: {destination}"
+        )
 
 
 # /v1/oauth/tokens
