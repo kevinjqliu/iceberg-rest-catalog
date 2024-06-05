@@ -43,37 +43,18 @@ catalog = SqlCatalog(
     "default",
     **{
         "uri": f"sqlite:///{warehouse_path}/pyiceberg_catalog.db",
-        "warehouse": f"file://{warehouse_path}",
-        # "warehouse": "s3://warehouse/rest/",
-        # "s3.endpoint": "http://localhost:9000",
-        # "s3.access-key-id": "admin",
-        # "s3.secret-access-key": "password",
+        # use local file system for pytest
+        # "warehouse": f"file://{warehouse_path}",
+        # use s3 for spark test 
+        "warehouse": "s3://warehouse/rest/",
+        "s3.endpoint": "http://localhost:9000",
+        "s3.access-key-id": "admin",
+        "s3.secret-access-key": "password",
     },
 )
 # recreate the db
 catalog.destroy_tables()
 catalog.create_tables()
-
-# from pyiceberg.catalog.sql import SqlCatalog
-
-# warehouse_path = "/tmp/warehouse"
-# catalog = SqlCatalog(
-#     "default",
-#     **{
-#         "uri": "sqlite:///:memory:",
-#         # "warehouse": f"file://{warehouse_path}",
-#         "echo": True,
-#     },
-# )
-# catalog.create_tables()
-
-# from pyiceberg.catalog.rest import RestCatalog
-# catalog = RestCatalog(
-#     "default",
-#     **{
-#         "uri": "http://localhost:8181/"
-#     },
-# )
 
 
 @app.get("/reset")
