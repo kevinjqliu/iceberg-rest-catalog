@@ -1,6 +1,6 @@
 from typing import Dict, List, Optional, Union
 
-from fastapi import Body, FastAPI, Header, Path, Query
+from fastapi import Body, FastAPI, HTTPException, Header, Path, Query
 from pydantic import BaseModel, Field, StrictBool, StrictStr
 
 from pyiceberg.table import TableIdentifier, TableRequirement, TableUpdate
@@ -8,6 +8,7 @@ from pyiceberg.table.metadata import TableMetadata
 from pyiceberg.schema import Schema
 from pyiceberg.partitioning import PartitionSpec
 from pyiceberg.table.sorting import SortOrder
+from pyiceberg.exceptions import TableAlreadyExistsError
 
 app = FastAPI()
 
@@ -451,14 +452,18 @@ def create_table(
         # properties: Optional[Dict[str, StrictStr]] = None
 
     """Create a table or start a create transaction, like atomic CTAS.  If &#x60;stage-create&#x60; is false, the table is created immediately.  If &#x60;stage-create&#x60; is true, the table is not created, but table metadata is initialized and returned. The service should prepare as needed for a commit to the table commit endpoint to complete the create transaction. The client uses the returned metadata to begin a transaction. To commit the transaction, the client sends all create and subsequent changes to the table commit route. Changes from the table create operation include changes like AddSchemaUpdate and SetCurrentSchemaUpdate that set the initial table state."""
-    tbl = catalog.create_table(
-        identifier=(namespace, create_table_request.name), 
-        schema=create_table_request.schema, 
-        location=create_table_request.location,
-        partition_spec=create_table_request.partition_spec, 
-        sort_order=create_table_request.write_order,
-        properties=create_table_request.properties
-    )
+    try:
+        identifier = (namespace, create_table_request.name)
+        tbl = catalog.create_table(
+            identifier=identifier, 
+            schema=create_table_request.schema, 
+            location=create_table_request.location,
+            partition_spec=create_table_request.partition_spec, 
+            sort_order=create_table_request.write_order,
+            properties=create_table_request.properties
+        )
+    except TableAlreadyExistsError:
+        raise HTTPException(status_code=409, detail=f"Table already exists: {identifier}")
     return LoadTableResult(metadata_location=tbl.metadata_location, metadata=tbl.metadata, config=tbl.properties)
 
 # /v1/{prefix}/namespaces/{namespace}/register (POST)
