@@ -1,6 +1,6 @@
 fastapi
 pyiceberg
+pip install git+https://github.com/apache/iceberg-python.git # install from latest source
 sqlalchemy
 pyiceberg[s3fs]
-pip install git+https://github.com/apache/iceberg-python.git
 ruff

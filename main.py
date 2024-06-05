@@ -1,4 +1,4 @@
-from typing import Dict, Optional
+from typing import Any, Dict, Optional
 
 from fastapi import Body, FastAPI, HTTPException, Path, Query
 from pydantic import BaseModel, Field, StrictStr
@@ -13,6 +13,7 @@ from pyiceberg.exceptions import (
     NamespaceNotEmptyError,
     CommitFailedException,
 )
+from pyiceberg.table.sorting import UNSORTED_SORT_ORDER
 
 from models.config import CatalogConfig
 from models.request import (
@@ -42,7 +43,11 @@ catalog = SqlCatalog(
     "default",
     **{
         "uri": f"sqlite:///{warehouse_path}/pyiceberg_catalog.db",
-        "warehouse": f"file://{warehouse_path}",
+        # "warehouse": f"file://{warehouse_path}",
+        "warehouse": "s3://warehouse/rest/",
+        "s3.endpoint": "http://localhost:9000",
+        "s3.access-key-id": "admin",
+        "s3.secret-access-key": "password",
     },
 )
 # recreate the db
@@ -71,11 +76,11 @@ catalog.create_tables()
 # )
 
 
-@app.get("/reset")
-def reset():
-    catalog.destroy_tables()
-    catalog.create_tables()
-    return {"status": "ok"}
+# @app.get("/reset")
+# def reset():
+#     catalog.destroy_tables()
+#     catalog.create_tables()
+#     return {"status": "ok"}
 
 
 # /v1/config
@@ -299,12 +304,17 @@ def create_table(
     """Create a table or start a create transaction, like atomic CTAS.  If &#x60;stage-create&#x60; is false, the table is created immediately.  If &#x60;stage-create&#x60; is true, the table is not created, but table metadata is initialized and returned. The service should prepare as needed for a commit to the table commit endpoint to complete the create transaction. The client uses the returned metadata to begin a transaction. To commit the transaction, the client sends all create and subsequent changes to the table commit route. Changes from the table create operation include changes like AddSchemaUpdate and SetCurrentSchemaUpdate that set the initial table state."""
     try:
         identifier = (namespace, create_table_request.name)
+        sort_order = (
+            create_table_request.write_order
+            if create_table_request.write_order is not None
+            else UNSORTED_SORT_ORDER
+        )
         tbl = catalog.create_table(
             identifier=identifier,
             schema=create_table_request.schema,
             location=create_table_request.location,
             partition_spec=create_table_request.partition_spec,
-            sort_order=create_table_request.write_order,
+            sort_order=sort_order,
             properties=create_table_request.properties,
         )
     except TableAlreadyExistsError:
@@ -399,14 +409,18 @@ def update_table(
 ) -> CommitTableResponse:
     """Commit updates to a table.  Commits have two parts, requirements and updates. Requirements are assertions that will be validated before attempting to make and commit changes. For example, &#x60;assert-ref-snapshot-id&#x60; will check that a named ref&#39;s snapshot ID has a certain value.  Updates are changes to make to table metadata. For example, after asserting that the current main ref is at the expected snapshot, a commit may add a new child snapshot and set the ref to the new snapshot id.  Create table transactions that are started by createTable with &#x60;stage-create&#x60; set to true are committed using this route. Transactions should include all changes to the table, including table initialization, like AddSchemaUpdate and SetCurrentSchemaUpdate. The &#x60;assert-create&#x60; requirement is used to ensure that the table was not created concurrently."""
     try:
+        if commit_table_request.identifier is None:
+            commit_table_request.identifier = TableIdentifier(
+                namespace=[namespace], name=table
+            )
         resp = catalog._commit_table(commit_table_request)
     except NoSuchTableError:
         raise HTTPException(
             status_code=404, detail=f"Table does not exist: {(namespace, table)}"
         )
-    except CommitFailedException:
+    except CommitFailedException as e:
         raise HTTPException(
-            status_code=409, detail=f"Commit failed: {(namespace, table)}"
+            status_code=409, detail=f"Commit failed: {(namespace, table)}, Error: {e}"
         )
     return resp
 
@@ -510,4 +524,22 @@ def rename_table(
 # /v1/{prefix}/namespaces/{namespace}/views
 # /v1/{prefix}/namespaces/{namespace}/views/{view}
 # /v1/{prefix}/views/rename
+
+
 # /v1/{prefix}/namespaces/{namespace}/tables/{table}/metrics
+@app.post(
+    "/v1/namespaces/{namespace}/tables/{table}/metrics",
+    tags=["Catalog API"],
+    summary="Send a metrics report to this endpoint to be processed by the backend",
+    response_model_by_alias=True,
+)
+def report_metrics(
+    namespace: str = Path(
+        ...,
+        description="A namespace identifier as a single string. Multipart namespace parts should be separated by the unit separator (&#x60;0x1F&#x60;) byte.",
+    ),
+    table: str = Path(..., description="A table name"),
+    report_metrics_request: Any = Body(
+        None, description="The request containing the metrics report to be sent"
+    ),
+) -> None: ...
