@@ -1,4 +1,4 @@
-from fastapi import HTTPException
+from fastapi import HTTPException, Request
 from fastapi.responses import JSONResponse
 
 ERROR = "error"
@@ -13,3 +13,7 @@ class IcebergHTTPException(HTTPException):
 
     def to_json_response(self):
         return JSONResponse(status_code=self.status_code, content=self.detail)
+
+
+def iceberg_http_exception_handler(request: Request, exc: IcebergHTTPException):
+    return exc.to_json_response()
