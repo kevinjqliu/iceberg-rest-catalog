@@ -10,6 +10,7 @@ packages = [{include = "iceberg_rest", from = "src"}]
 python = "^3.10"
 fastapi = "^0.111.0"
 psycopg2-binary = "^2.9.9"
+pydantic-settings = "^2.3.2"
 pyiceberg = {git = "https://github.com/apache/iceberg-python"}
 s3fs = "^2024.6.0"
 sqlalchemy = "^2.0.30"

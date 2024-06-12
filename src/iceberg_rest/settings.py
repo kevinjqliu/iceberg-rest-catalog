@@ -1,0 +1,28 @@
+from pydantic import (
+    Field,
+)
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+
+class Settings(BaseSettings):
+    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
+
+    # General settings
+    CATALOG_NAME: str = Field(default="default")
+    CATALOG_URI: str = Field(default="sqlite:////tmp/warehouse/pyiceberg_catalog.db")
+    CATALOG_WAREHOUSE: str = Field(
+        default="file:///tmp/warehouse", examples=["s3://warehouse/rest/"]
+    )
+
+    # JDBC settings
+    CATALOG_JDBC_USER: str = Field(default="user")
+    CATALOG_JDBC_PASSWORD: str = Field(default="password")
+
+    # S3 settings
+    AWS_ACCESS_KEY_ID: str = Field(default="admin")
+    AWS_SECRET_ACCESS_KEY: str = Field(default="password")
+    AWS_REGION: str = Field(default="us-east-1")
+    CATALOG_S3_ENDPOINT: str = Field(default="http://localhost:9000")
+
+
+settings = Settings()
