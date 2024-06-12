@@ -61,11 +61,14 @@ import requests
 
 DEFAULT_WAREHOUSE_LOCATION = "file:///tmp/warehouse"
 
+# To run this test, you need to start the REST server in terminal,
+# CATALOG_CONFIG='{"warehouse": "file:///tmp/warehouse"}' fastapi dev main.py
+
 
 @pytest.fixture
 def catalog(tmp_path: PosixPath) -> Catalog:
     catalog = RestCatalog(
-        # (TODO): this needs to be the same as the REST server name because the catalog name is part of the identifier 
+        # (TODO): this needs to be the same as the REST server name because the catalog name is part of the identifier
         "default",
         **{
             "uri": "http://127.0.0.1:8000/",
