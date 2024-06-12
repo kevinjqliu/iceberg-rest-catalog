@@ -36,15 +36,6 @@ spark = (
     .getOrCreate()
 )
 
-# .config("spark.sql.catalog.spark_catalog", "org.apache.iceberg.spark.SparkSessionCatalog") \
-# .config("spark.sql.catalog.spark_catalog.type", "hadoop") \
-# .config("spark.sql.catalog.spark_catalog.warehouse", "path_to_your_warehouse_directory") \
-# .config("spark.sql.extensions", "org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions") \
-# .config("spark.eventLog.enabled", "true") \
-# .config("spark.eventLog.dir", "/home/iceberg/spark-events") \
-# .config("spark.history.fs.logDirectory", "/home/iceberg/spark-events") \
-
-
 catalog = load_catalog(
     "rest",
     **{
