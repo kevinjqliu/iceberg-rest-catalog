@@ -28,11 +28,12 @@ RUN add-apt-repository ppa:deadsnakes/ppa
 RUN apt-get update && apt-get install --no-install-recommends -y \
     curl \
     build-essential \
-    python3.10 \
-    python3.10-distutils \
-    python3.10-venv \
+    python3.11 \
+    python3.11-distutils \
     python3-pip \
     python3-setuptools \
+    python3-dev \
+    libmysqlclient-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Poetry - respects $POETRY_VERSION & $POETRY_HOME

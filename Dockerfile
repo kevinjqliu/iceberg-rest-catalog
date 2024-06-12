@@ -1,6 +1,6 @@
 ########################################################################################
 
-ARG BASE_IMAGE=python:3.11-slim
+ARG BASE_IMAGE=python:3.11
 FROM ${BASE_IMAGE} AS runtime-base
 WORKDIR /home/iceberg/iceberg_rest
 
@@ -8,7 +8,9 @@ WORKDIR /home/iceberg/iceberg_rest
 ENV DEBIAN_FRONTEND=nonintercative
 
 # Install curl for healthcheck
-RUN apt-get update && apt-get install --no-install-recommends -y curl  && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install --no-install-recommends -y \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
 
 # Create iceberg user
 RUN groupadd iceberg && \
@@ -37,8 +39,11 @@ RUN apt-get update \
     && apt-get install --no-install-recommends -y \
     curl \
     build-essential \
+    python3.11-distutils \
+    python3-pip \
     python3-setuptools \
-    git \
+    python3-dev \
+    libmariadb-dev-compat \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Poetry - respects $POETRY_VERSION & $POETRY_HOME
@@ -55,16 +60,17 @@ COPY pyproject.toml poetry.lock poetry.toml ./
 ########################################################################################
 
 FROM build-base AS build-prod
+ARG EXTRAS=base
 
 # Install the dependencies first so they are cached
-RUN poetry install --no-root
+RUN poetry install --no-root --extras=${EXTRAS}
 
 ########################################################################################
 
 FROM build-base AS build-dev
 
 # Install the dependencies first so they are cached
-RUN poetry install --no-root --with dev
+RUN poetry install --no-root --with dev --all-extras
 
 ########################################################################################
 
