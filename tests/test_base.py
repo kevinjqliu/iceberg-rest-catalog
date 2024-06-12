@@ -23,15 +23,15 @@ from typing import (
 )
 
 import pyarrow as pa
-from pyiceberg.catalog.rest import RestCatalog
 import pytest
+import requests
+from iceberg_rest.settings import settings
 from pydantic_core import ValidationError
-from pytest_lazyfixture import lazy_fixture
-
 from pyiceberg.catalog import (
     Catalog,
     PropertiesUpdateSummary,
 )
+from pyiceberg.catalog.rest import RestCatalog
 from pyiceberg.exceptions import (
     NamespaceAlreadyExistsError,
     NamespaceNotEmptyError,
@@ -56,8 +56,7 @@ from pyiceberg.table import (
 from pyiceberg.transforms import IdentityTransform
 from pyiceberg.typedef import EMPTY_DICT, Properties
 from pyiceberg.types import IntegerType, LongType, NestedField
-
-import requests
+from pytest_lazyfixture import lazy_fixture
 
 # To run this test, you need to start the REST server in terminal,
 # CATALOG_CONFIG='{"warehouse": "file:///tmp/warehouse"}' fastapi dev main.py
@@ -69,10 +68,10 @@ DEFAULT_WAREHOUSE_LOCATION = "file:///tmp/warehouse"
 def catalog(tmp_path: PosixPath):
     catalog = RestCatalog(
         # (TODO): this needs to be the same as the REST server name because the catalog name is part of the identifier
-        "default",
+        settings.CATALOG_NAME,
         **{
             "uri": REST_ENDPOINT,
-            WAREHOUSE: tmp_path.absolute().as_posix(),
+            WAREHOUSE: settings.CATALOG_WAREHOUSE,
             "test.key": "test.value",
         },
     )
@@ -81,8 +80,8 @@ def catalog(tmp_path: PosixPath):
     requests.get(f"{REST_ENDPOINT}/reset")
 
 
-TEST_TABLE_IDENTIFIER = ("default", "my_table")
-TEST_TABLE_NAMESPACE = ("default",)
+TEST_TABLE_IDENTIFIER = (settings.CATALOG_NAME, "my_table")
+TEST_TABLE_NAMESPACE = (settings.CATALOG_NAME,)
 TEST_TABLE_NAME = "my_table"
 TEST_TABLE_SCHEMA = Schema(
     NestedField(1, "x", LongType(), required=True),

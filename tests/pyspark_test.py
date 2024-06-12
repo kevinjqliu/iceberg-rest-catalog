@@ -1,10 +1,10 @@
-from pyspark.sql import SparkSession
+import os
 
+from iceberg_rest.settings import settings
 from pyiceberg.catalog import load_catalog
 from pyiceberg.schema import Schema
 from pyiceberg.types import FixedType, NestedField, UUIDType
-
-import os
+from pyspark.sql import SparkSession
 
 # run with `python tests/pyspark_test.py`
 
@@ -30,7 +30,7 @@ spark = (
     .config("spark.sql.catalog.rest.uri", "http://localhost:8000")
     .config("spark.sql.catalog.rest.io-impl", "org.apache.iceberg.aws.s3.S3FileIO")
     .config("spark.sql.catalog.rest.warehouse", "s3://warehouse/rest/")
-    .config("spark.sql.catalog.rest.s3.endpoint", "http://127.0.0.1:9000")
+    .config("spark.sql.catalog.rest.s3.endpoint", settings.CATALOG_S3_ENDPOINT)
     .config("spark.sql.defaultCatalog", "rest")
     .config("spark.sql.catalogImplementation", "in-memory")
     .getOrCreate()
@@ -42,9 +42,9 @@ catalog = load_catalog(
         "type": "rest",
         "uri": "http://localhost:8000",
         "warehouse": "s3://warehouse/rest/",
-        "s3.endpoint": "http://127.0.0.1:9000",
-        "s3.access-key-id": "admin",
-        "s3.secret-access-key": "password",
+        "s3.endpoint": settings.CATALOG_S3_ENDPOINT,
+        "s3.access-key-id": settings.AWS_ACCESS_KEY_ID,
+        "s3.secret-access-key": settings.AWS_SECRET_ACCESS_KEY,
     },
 )
 
