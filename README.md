@@ -1,27 +1,22 @@
 # iceberg-rest-catalog
-Pythonic Iceberg REST Catalog 
+Pythonic Iceberg REST Catalog
 
-Create a virtualenv
-```
-python -m venv ./venv                     
-source ./venv/bin/activate
-```
+## Getting Started
 
-Install project dependencies
+Build the docker image
 ```
-pip install -r requirements.txt
+docker build . --target=prod -t iceberg-rest
 ```
 
 Run the REST Catalog API server
 ```
-fastapi dev main.py
+docker run --rm -it -p 8000:8000 iceberg-rest
 ```
 
 Query HTTP URL in web browser
 ```
 http://127.0.0.1:8000/v1/namespaces
 ```
-
 
 Currently the REST catalog saves metadata in the local filesystem (under the `/tmp/warehouse/` directory)
 This can be made configurable in the future.
