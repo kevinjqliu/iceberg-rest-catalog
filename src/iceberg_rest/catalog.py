@@ -2,7 +2,16 @@ from iceberg_rest.settings import settings
 from pyiceberg.catalog.sql import SqlCatalog
 
 
-def get_catalog():
+class Catalog:
+    instance = None
+
+    def __new__(cls):
+        if cls.instance is None:
+            cls.instance = _create_catalog()
+        return cls.instance
+
+
+def _create_catalog():
     catalog = SqlCatalog(
         settings.CATALOG_NAME,
         **{
@@ -13,4 +22,12 @@ def get_catalog():
             "s3.secret-access-key": settings.AWS_SECRET_ACCESS_KEY,
         },
     )
-    yield catalog
+    # (TODO): remove this
+    # recreate the db everytime app restarts
+    catalog.destroy_tables()
+    catalog.create_tables()
+    return catalog
+
+
+def get_catalog() -> Catalog:
+    return Catalog()

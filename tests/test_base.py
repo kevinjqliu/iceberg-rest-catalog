@@ -23,15 +23,15 @@ from typing import (
 )
 
 import pyarrow as pa
-from pyiceberg.catalog.rest import RestCatalog
 import pytest
+import requests
+from iceberg_rest.settings import settings
 from pydantic_core import ValidationError
-from pytest_lazyfixture import lazy_fixture
-
 from pyiceberg.catalog import (
     Catalog,
     PropertiesUpdateSummary,
 )
+from pyiceberg.catalog.rest import RestCatalog
 from pyiceberg.exceptions import (
     NamespaceAlreadyExistsError,
     NamespaceNotEmptyError,
@@ -56,30 +56,32 @@ from pyiceberg.table import (
 from pyiceberg.transforms import IdentityTransform
 from pyiceberg.typedef import EMPTY_DICT, Properties
 from pyiceberg.types import IntegerType, LongType, NestedField
+from pytest_lazyfixture import lazy_fixture
 
-import requests
-
+# To run this test, you need to start the REST server in terminal,
+# CATALOG_CONFIG='{"warehouse": "file:///tmp/warehouse"}' fastapi dev main.py
+REST_ENDPOINT = "http://127.0.0.1:8000/"
 DEFAULT_WAREHOUSE_LOCATION = "file:///tmp/warehouse"
 
 
 @pytest.fixture
-def catalog(tmp_path: PosixPath) -> Catalog:
+def catalog(tmp_path: PosixPath):
     catalog = RestCatalog(
-        # (TODO): this needs to be the same as the REST server name because the catalog name is part of the identifier 
-        "default",
+        # (TODO): this needs to be the same as the REST server name because the catalog name is part of the identifier
+        settings.CATALOG_NAME,
         **{
-            "uri": "http://127.0.0.1:8000/",
-            WAREHOUSE: tmp_path.absolute().as_posix(),
+            "uri": REST_ENDPOINT,
+            WAREHOUSE: settings.CATALOG_WAREHOUSE,
             "test.key": "test.value",
         },
     )
     yield catalog
     # reset the catalog for each test
-    requests.get("http://127.0.0.1:8000/reset")
+    requests.get(f"{REST_ENDPOINT}/reset")
 
 
-TEST_TABLE_IDENTIFIER = ("default", "my_table")
-TEST_TABLE_NAMESPACE = ("default",)
+TEST_TABLE_IDENTIFIER = (settings.CATALOG_NAME, "my_table")
+TEST_TABLE_NAMESPACE = (settings.CATALOG_NAME,)
 TEST_TABLE_NAME = "my_table"
 TEST_TABLE_SCHEMA = Schema(
     NestedField(1, "x", LongType(), required=True),
