@@ -9,12 +9,18 @@ class Settings(BaseSettings):
 
     # General settings
     CATALOG_NAME: str = Field(default="default")
-    CATALOG_URI: str = Field(default="sqlite:////tmp/warehouse/pyiceberg_catalog.db")
     CATALOG_WAREHOUSE: str = Field(
         default="file:///tmp/warehouse", examples=["s3://warehouse/rest/"]
     )
 
     # JDBC settings
+    CATALOG_JDBC_URI: str = Field(
+        default="sqlite:////tmp/warehouse/pyiceberg_catalog.db",
+        examples=[
+            "postgresql://pguser:password@postgres:5432/iceberg_db",
+            "mysql://dbuser:password@mysql:3306/iceberg_db",
+        ],
+    )
     CATALOG_JDBC_USER: str = Field(default="user")
     CATALOG_JDBC_PASSWORD: str = Field(default="password")
 
