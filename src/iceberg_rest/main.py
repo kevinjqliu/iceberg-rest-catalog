@@ -1,7 +1,7 @@
 from fastapi import FastAPI
-from api.catalog_api import router as CatalogApiRouter
-from catalog import get_catalog
-from exception import IcebergHTTPException, iceberg_http_exception_handler
+from iceberg_rest.api.catalog_api import router as CatalogApiRouter
+from iceberg_rest.catalog import get_catalog
+from iceberg_rest.exception import IcebergHTTPException, iceberg_http_exception_handler
 
 
 app = FastAPI()
