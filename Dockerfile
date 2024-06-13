@@ -63,7 +63,7 @@ FROM build-base AS build-prod
 ARG EXTRAS=base
 
 # Install the dependencies first so they are cached
-RUN poetry install --no-root --extras=${EXTRAS}
+RUN poetry install --no-root --extras "${EXTRAS}"
 
 ########################################################################################
 
