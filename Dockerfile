@@ -38,11 +38,6 @@ ENV DEBIAN_FRONTEND=nonintercative
 RUN apt-get update \
     && apt-get install --no-install-recommends -y \
     curl \
-    build-essential \
-    python3.11-distutils \
-    python3-pip \
-    python3-setuptools \
-    python3-dev \
     libmariadb-dev-compat \
     && rm -rf /var/lib/apt/lists/*
 
