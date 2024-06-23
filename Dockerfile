@@ -54,8 +54,11 @@ RUN curl -sSL https://install.python-poetry.org/ | python3
 # Add Poetry to the path
 ENV PATH="$POETRY_HOME/bin:$PATH"
 
+# Copy in the submodules
+COPY vendor/ vendor/
+
 # Copy in the config files
-COPY pyproject.toml poetry.lock poetry.toml ./
+COPY pyproject.toml poetry.lock poetry.toml .gitmodules ./
 
 ########################################################################################
 

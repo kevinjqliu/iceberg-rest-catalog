@@ -16,7 +16,7 @@ mysqlclient = { version = "^2.2.4", optional = true }
 psycopg2-binary = { version = "^2.9.9", optional = true }
 pyarrow = "^16.1.0"
 pydantic-settings = "^2.3.2"
-pyiceberg = { git = "https://github.com/apache/iceberg-python" }
+pyiceberg = { path = "./vendor/iceberg-python" }
 s3fs = "^2024.6.0"
 sqlalchemy = "^2.0.30"
 uvicorn = "^0.30.1"
