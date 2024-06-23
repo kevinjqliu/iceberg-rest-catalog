@@ -44,6 +44,7 @@ RUN apt-get update \
     python3-setuptools \
     python3-dev \
     libmariadb-dev-compat \
+    libssl-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Poetry - respects $POETRY_VERSION & $POETRY_HOME
