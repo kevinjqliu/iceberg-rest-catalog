@@ -22,10 +22,6 @@ def _create_catalog():
             "s3.secret-access-key": settings.AWS_SECRET_ACCESS_KEY,
         },
     )
-    # (TODO): remove this
-    # recreate the db everytime app restarts
-    catalog.destroy_tables()
-    catalog.create_tables()
     return catalog
 
 
