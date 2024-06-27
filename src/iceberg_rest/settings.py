@@ -10,7 +10,7 @@ class Settings(BaseSettings):
     # General settings
     CATALOG_NAME: str = Field(default="default")
     CATALOG_WAREHOUSE: str = Field(
-        default="file:///tmp/warehouse", examples=["s3://warehouse/rest/"]
+        default="s3://warehouse/rest", examples=["s3://warehouse/rest"]
     )
 
     # JDBC settings
@@ -28,7 +28,7 @@ class Settings(BaseSettings):
     AWS_ACCESS_KEY_ID: str = Field(default="admin")
     AWS_SECRET_ACCESS_KEY: str = Field(default="password")
     AWS_REGION: str = Field(default="us-east-1")
-    CATALOG_S3_ENDPOINT: str = Field(default="http://localhost:9000")
+    CATALOG_S3_ENDPOINT: str = Field(default="http://127.0.0.1:9000")
 
 
 settings = Settings()
