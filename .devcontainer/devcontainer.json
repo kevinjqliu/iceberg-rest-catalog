@@ -1,0 +1,92 @@
+{
+    "name": "Existing Dockerfile",
+    "build": {
+      "context": ".",
+      "dockerfile": "Dockerfile",
+      "args": {
+        "USERNAME": "${localEnv:USER}"
+      }
+    },
+    "mounts": [
+      "source=${localEnv:USER}-command-history,target=/commandhistory,type=volume",
+      "source=/home/${localEnv:USER}/.ssh,target=/home/${localEnv:USER}/.ssh,type=bind"
+    ],
+    "runArgs": ["--network=host"],
+    "workspaceMount": "source=${localWorkspaceFolder},target=/home/${localEnv:USER}/workspace/iceberg_rest,type=bind",
+    "workspaceFolder": "/home/${localEnv:USER}/workspace/iceberg_rest",
+    "features": {
+      "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {},
+      "ghcr.io/devcontainers/features/common-utils:2": {
+        "configureZshAsDefaultShell": true
+      },
+      "ghcr.io/devcontainers-contrib/features/zsh-plugins:0": {
+        "omzPlugins": "https://github.com/zsh-users/zsh-autosuggestions https://github.com/zsh-users/zsh-syntax-highlighting"
+      },
+      "ghcr.io/dhoeric/features/hadolint:1": {},
+      "ghcr.io/eitsupi/devcontainer-features/jq-likes:2": {
+        "jqVersion": "latest",
+        "yqVersion": "latest",
+        "xqVersion": "latest"
+      },
+      "ghcr.io/devcontainers-contrib/features/exa:1": {},
+      "ghcr.io/devcontainers/features/go:1": {},
+      "ghcr.io/devcontainers/features/node:1": {},
+      "ghcr.io/devcontainers/features/rust:1": {},
+      "ghcr.io/devcontainers/features/java:1": {},
+      "ghcr.io/devcontainers-contrib/features/vtop:2": {},
+      "ghcr.io/devcontainers-contrib/features/asdf-package:1": {},
+      "ghcr.io/itsmechlark/features/postgresql:1": {}
+    },
+    "customizations": {
+      "vscode": {
+        "settings": {
+          "python.defaultInterpreterPath": "/home/${localEnv:USER}/workspace/iceberg_rest/.venv/bin/python",
+          "python.pythonPath": "/home/${localEnv:USER}/workspace/iceberg_rest/.venv/bin/python",
+          "python.terminal.activateEnvInCurrentTerminal": true,
+          "python.languageServer": "Pylance",
+          "python.testing.pytestArgs": [
+              "tests"
+          ],
+          "python.testing.unittestEnabled": false,
+          "python.testing.pytestEnabled": true,
+          "dotfiles.repository": "https://github.com/GoldToothRichards/dotfiles",
+          "dotfiles.targetPath": "/home/${localEnv:USER}/dotfiles",
+          "dotfiles.installCommand": "RCRC=/home/${localEnv:USER}/dotfiles/rcrc rcup -f"
+        },
+        "extensions": [
+          "ms-vscode-remote.vscode-remote-extensionpack",
+          "ms-python.python",
+          "charliermarsh.ruff",
+          "redhat.vscode-yaml",
+          "tamasfe.even-better-toml",
+          "esbenp.prettier-vscode",
+          "GitHub.copilot",
+          "eamodio.gitlens",
+          "mhutchie.git-graph",
+          "donjayamanne.githistory",
+          "mtxr.sqltools",
+          "mtxr.sqltools-driver-pg",
+          "mikestead.dotenv",
+          "ms-azuretools.vscode-docker",
+          "foxundermoon.shell-format",
+          "wmaurer.change-case"
+        ]
+      }
+    },
+    "postCreateCommand": [
+      "/bin/sh",
+      "-c",
+      "git clone --depth=1 https://github.com/romkatv/powerlevel10k.git ${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/themes/powerlevel10k && go install github.com/justjanne/powerline-go@latest"
+    ],
+  
+    "postStartCommand": [
+      "/bin/sh",
+      "-c",
+      "sudo chown -R ${localEnv:USER}:${localEnv:USER} /usr/local/share/zsh/site-functions && sudo chown -R ${localEnv:USER}:${localEnv:USER} /commandhistory && RCRC=/home/${localEnv:USER}/dotfiles/rcrc rcup -f"
+    ],
+    "postAttachCommand": [
+      "/bin/sh",
+      "-c",
+      "sudo chown -R ${localEnv:USER}:${localEnv:USER} /opt/poetry/ && poetry self add poetry-plugin-sort"
+    ]
+  }

@@ -4,8 +4,8 @@ from typing import Any, Dict, Optional, Union
 from fastapi import Body, Path, Query
 from pydantic import BaseModel, Field, StrictStr
 
-from catalog import get_catalog
-from exception import IcebergHTTPException
+from iceberg_rest.catalog import get_catalog
+from iceberg_rest.exception import IcebergHTTPException
 from pyiceberg.table import TableIdentifier
 from pyiceberg.table.metadata import TableMetadata
 from pyiceberg.exceptions import (
@@ -19,8 +19,8 @@ from pyiceberg.exceptions import (
 from pyiceberg.table.sorting import UNSORTED_SORT_ORDER
 from pyiceberg.typedef import Identifier
 
-from models.config import CatalogConfig
-from models.request import (
+from iceberg_rest.models.config import CatalogConfig
+from iceberg_rest.models.request import (
     CommitTableRequest,
     CommitTransactionRequest,
     CreateNamespaceRequest,
@@ -29,7 +29,7 @@ from models.request import (
     RenameTableRequest,
     UpdateNamespacePropertiesRequest,
 )
-from models.response import (
+from iceberg_rest.models.response import (
     CommitTableResponse,
     CreateNamespaceResponse,
     GetNamespaceResponse,
