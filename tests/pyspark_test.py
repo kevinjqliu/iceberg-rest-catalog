@@ -62,6 +62,10 @@ schema = Schema(
     NestedField(field_id=1, name="uuid_col", field_type=UUIDType(), required=False),
     NestedField(field_id=2, name="fixed_col", field_type=FixedType(25), required=False),
 )
+try:
+    catalog.drop_table("default.test_uuid_and_fixed_unpartitioned")
+except:
+    pass
 
 catalog.create_table(
     identifier="default.test_uuid_and_fixed_unpartitioned", schema=schema
@@ -100,4 +104,12 @@ UNION ALL SELECT
     3            AS idx,
     1            AS col_numeric
 """
+)
+
+# write to table with spark sql
+spark.sql(
+    f"""
+    INSERT INTO {catalog_name}.default.test_null_nan VALUES
+    (4, 999);
+    """
 )
