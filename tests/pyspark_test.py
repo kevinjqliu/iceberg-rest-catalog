@@ -7,6 +7,7 @@ from pyiceberg.types import FixedType, NestedField, UUIDType
 import os
 
 # run with `python tests/pyspark_test.py`
+# CATALOG_CONFIG={ "uri": "sqlite:////tmp/warehouse/pyiceberg_catalog.db", "warehouse": "s3://warehouse/rest/", "s3.endpoint": "http://localhost:9000", "s3.access-key-id": "admin", "s3.secret-access-key": "password"}
 
 # Set environment variables
 os.environ["AWS_ACCESS_KEY_ID"] = "admin"
