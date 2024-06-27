@@ -1,0 +1,15 @@
+services:
+  iceberg_rest:
+    image: iceberg-rest-base
+    build:
+      context: ../../
+      dockerfile: Dockerfile
+      target: prod
+      args:
+        - BASE_IMAGE=python:3.11-slim
+    container_name: iceberg-rest
+    environment:
+      - CATALOG_JDBC_URI=sqlite:////tmp/warehouse/pyiceberg_catalog.db
+      - CATALOG_WAREHOUSE=file:///tmp/warehouse
+    ports:
+      - 8000:8000

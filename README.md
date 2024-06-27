@@ -1,27 +1,67 @@
 # iceberg-rest-catalog
-Pythonic Iceberg REST Catalog 
 
-Create a virtualenv
-```
-python -m venv ./venv                     
-source ./venv/bin/activate
-```
+Pythonic Iceberg REST Catalog
 
-Install project dependencies
-```
-pip install -r requirements.txt
-```
+## Build a docker image
 
-Run the REST Catalog API server
+**Base -** Supports SQLite backend only.
+
 ```
-fastapi dev main.py
+docker build . \
+--target=prod \
+--build-arg BASE_IMAGE=python:3.11-slim \
+-t iceberg-rest-base
 ```
 
-Query HTTP URL in web browser
+**Postgres -** Supports Postgres and SQLite backends.
+
 ```
-http://127.0.0.1:8000/v1/namespaces
+docker build . \
+--target=prod \
+--build-arg EXTRAS=postgres \
+--build-arg BASE_IMAGE=python:3.11-slim \
+-t iceberg-rest-postgres
 ```
 
+**MySQL -** Supports MySQL and SQLite backends.
 
-Currently the REST catalog saves metadata in the local filesystem (under the `/tmp/warehouse/` directory)
-This can be made configurable in the future.
+```
+docker build . \
+--target=prod \
+--build-arg EXTRAS=mysql \
+--build-arg BASE_IMAGE=python:3.11 \
+-t iceberg-rest-mysql
+```
+
+**Full -** Supports SQLite, Postgres, and MySQL backends.
+
+```
+docker build . \
+--target=prod \
+--build-arg EXTRAS='postgres mysql' \
+--build-arg BASE_IMAGE=python:3.11 \
+-t iceberg-rest-full
+```
+
+**Dev -** Supports SQLite, postgres, and MySQL backends. Includes all extra python packages and testing utilities.
+
+```
+docker build . \
+--target=dev \
+--build-arg BASE_IMAGE=python:3.11 \
+-t iceberg-rest-dev
+```
+
+## Run the REST Catalog API server
+
+```
+docker run --rm -it -p 8000:8000 iceberg-rest-[base/postgres/mysql/full/dev]
+```
+
+Go to [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs) to inspect the OpenAPI documentation.
+
+## Notes
+
+- Currently the REST catalog saves metadata in the local filesystem (under the `/tmp/warehouse/` directory)
+  This can be made configurable in the future.
+- The Postgres and SQLite backends can be used from a slim python image but the MySQL backend requires the full size python base image.
