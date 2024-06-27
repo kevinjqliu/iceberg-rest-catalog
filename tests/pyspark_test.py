@@ -7,6 +7,7 @@ from pyiceberg.types import FixedType, NestedField, UUIDType
 from pyspark.sql import SparkSession
 
 # run with `python tests/pyspark_test.py`
+# CATALOG_CONFIG={ "uri": "sqlite:////tmp/warehouse/pyiceberg_catalog.db", "warehouse": "s3://warehouse/rest/", "s3.endpoint": "http://localhost:9000", "s3.access-key-id": "admin", "s3.secret-access-key": "password"}
 
 # Set environment variables
 os.environ["AWS_ACCESS_KEY_ID"] = "admin"
@@ -62,6 +63,10 @@ schema = Schema(
     NestedField(field_id=1, name="uuid_col", field_type=UUIDType(), required=False),
     NestedField(field_id=2, name="fixed_col", field_type=FixedType(25), required=False),
 )
+try:
+    catalog.drop_table("default.test_uuid_and_fixed_unpartitioned")
+except:
+    pass
 
 catalog.create_table(
     identifier="default.test_uuid_and_fixed_unpartitioned", schema=schema
@@ -100,4 +105,12 @@ UNION ALL SELECT
     3            AS idx,
     1            AS col_numeric
 """
+)
+
+# write to table with spark sql
+spark.sql(
+    f"""
+    INSERT INTO {catalog_name}.default.test_null_nan VALUES
+    (4, 999);
+    """
 )

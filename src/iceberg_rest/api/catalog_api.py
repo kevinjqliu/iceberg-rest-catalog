@@ -57,6 +57,7 @@ def reset(catalog: Catalog = Depends(get_catalog)):
     tags=["Configuration API"],
     summary="List all catalog configuration settings",
     response_model_by_alias=True,
+    response_model_exclude_none=True,
 )
 def get_config(
     warehouse: str = Query(
@@ -75,6 +76,7 @@ def get_config(
     tags=["Catalog API"],
     summary="Create a namespace",
     response_model_by_alias=True,
+    response_model_exclude_none=True,
 )
 def create_namespace(
     create_namespace_request: CreateNamespaceRequest = Body(None, description=""),
@@ -97,6 +99,7 @@ def create_namespace(
     tags=["Catalog API"],
     summary="List namespaces, optionally providing a parent namespace to list underneath",
     response_model_by_alias=True,
+    response_model_exclude_none=True,
 )
 def list_namespaces(
     parent: str = Query(
@@ -122,6 +125,7 @@ def list_namespaces(
     tags=["Catalog API"],
     summary="Load the metadata properties for a namespace",
     response_model_by_alias=True,
+    response_model_exclude_none=True,
 )
 def load_namespace_metadata(
     namespace: str = Path(
@@ -146,6 +150,7 @@ def load_namespace_metadata(
     tags=["Catalog API"],
     summary="Drop a namespace from the catalog. Namespace must be empty.",
     response_model_by_alias=True,
+    response_model_exclude_none=True,
 )
 def drop_namespace(
     namespace: str = Path(
@@ -172,6 +177,7 @@ def drop_namespace(
     tags=["Catalog API"],
     summary="Check if a namespace exists",
     response_model_by_alias=True,
+    response_model_exclude_none=True,
 )
 def namespace_exists(
     namespace: str = Path(
@@ -195,6 +201,7 @@ def namespace_exists(
     tags=["Catalog API"],
     summary="Set or remove properties on a namespace",
     response_model_by_alias=True,
+    response_model_exclude_none=True,
 )
 def update_namespace_properties(
     namespace: str = Path(
@@ -231,6 +238,7 @@ def update_namespace_properties(
     tags=["Catalog API"],
     summary="List all table identifiers underneath a given namespace",
     response_model_by_alias=True,
+    response_model_exclude_none=True,
 )
 def list_tables(
     namespace: str = Path(
@@ -271,6 +279,7 @@ class LoadTableResult(BaseModel):
     tags=["Catalog API"],
     summary="Create a table in the given namespace",
     response_model_by_alias=True,
+    response_model_exclude_none=True,
 )
 def create_table(
     namespace: str = Path(
@@ -356,6 +365,7 @@ def _create_table(
     tags=["Catalog API"],
     summary="Register a table in the given namespace using given metadata file location",
     response_model_by_alias=True,
+    response_model_exclude_none=True,
 )
 def register_table(
     namespace: str = Path(
@@ -393,6 +403,7 @@ def register_table(
     tags=["Catalog API"],
     summary="Load a table from the catalog",
     response_model_by_alias=True,
+    response_model_exclude_none=True,
 )
 def load_table(
     namespace: str = Path(
@@ -422,6 +433,7 @@ def load_table(
     tags=["Catalog API"],
     summary="Commit updates to a table",
     response_model_by_alias=True,
+    response_model_exclude_none=True,
 )
 def update_table(
     namespace: str = Path(
@@ -455,6 +467,7 @@ def update_table(
     tags=["Catalog API"],
     summary="Drop a table from the catalog",
     response_model_by_alias=True,
+    response_model_exclude_none=True,
 )
 def drop_table(
     namespace: str = Path(
@@ -478,6 +491,7 @@ def drop_table(
     tags=["Catalog API"],
     summary="Check if a table exists",
     response_model_by_alias=True,
+    response_model_exclude_none=True,
 )
 def table_exists(
     namespace: str = Path(
@@ -502,6 +516,7 @@ def table_exists(
     tags=["Catalog API"],
     summary="Commit updates to multiple tables in an atomic operation",
     response_model_by_alias=True,
+    response_model_exclude_none=True,
 )
 def commit_transaction(
     commit_transaction_request: CommitTransactionRequest = Body(
@@ -517,6 +532,7 @@ def commit_transaction(
     tags=["Catalog API"],
     summary="Rename a table from its current name to a new name",
     response_model_by_alias=True,
+    response_model_exclude_none=True,
 )
 def rename_table(
     rename_table_request: RenameTableRequest = Body(
@@ -556,6 +572,7 @@ def rename_table(
     tags=["Catalog API"],
     summary="Send a metrics report to this endpoint to be processed by the backend",
     response_model_by_alias=True,
+    response_model_exclude_none=True,
 )
 def report_metrics(
     namespace: str = Path(
@@ -576,6 +593,7 @@ def report_metrics(
     tags=["Catalog API"],
     summary="List all view identifiers underneath a given namespace",
     response_model_by_alias=True,
+    response_model_exclude_none=True,
 )
 def list_views(
     namespace: str = Path(
@@ -597,6 +615,7 @@ def list_views(
     tags=["Catalog API"],
     summary="Load a view from the catalog",
     response_model_by_alias=True,
+    response_model_exclude_none=True,
 )
 def load_view(
     namespace: str = Path(
