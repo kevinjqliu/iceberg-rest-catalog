@@ -98,7 +98,7 @@ CMD ["uvicorn", "src.iceberg_rest.main:app", "--host", "0.0.0.0", "--port", "800
 
 # Healthcheck
 HEALTHCHECK --interval=5m --timeout=30s --start-period=30s --retries=5 \
-    CMD curl -f  http://localhost:8000/healthcheck/healthcheck || exit 1
+    CMD curl -f  http://localhost:8000/v1/config || exit 1
 
 ########################################################################################
 
