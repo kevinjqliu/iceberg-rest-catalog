@@ -77,7 +77,13 @@ FROM runtime-base AS prod
 
 # Add the virtualenv from the build-prod stage into the runtime image
 COPY --from=build-prod /home/iceberg/iceberg_rest/.venv /home/iceberg/iceberg_rest/.venv
-ENV PATH="/home/iceberg/iceberg_rest/.venv/bin:$PATH" 
+ENV PATH="/home/iceberg/iceberg_rest/.venv/bin:$PATH"
+
+# Give the iceberg user ownership of the iceberg_rest directory
+RUN chown -R iceberg:iceberg /home/iceberg/iceberg_rest
+
+# Switch to iceberg user
+USER iceberg
 
 # Add the source code
 COPY pyproject.toml ./
@@ -86,12 +92,6 @@ COPY README.md README.md
 
 # Install the source package
 RUN pip install . --no-deps
-
-# Give the iceberg user ownership of the iceberg_rest directory
-RUN chown -R iceberg:iceberg /home/iceberg/iceberg_rest
-
-# Switch to iceberg user
-USER iceberg
 
 # Serve the app in production mode
 CMD ["uvicorn", "src.iceberg_rest.main:app", "--host", "0.0.0.0", "--port", "8000"]
@@ -118,6 +118,12 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
 COPY --from=build-dev /home/iceberg/iceberg_rest/.venv /home/iceberg/iceberg_rest/.venv
 ENV PATH="/home/iceberg/iceberg_rest/.venv/bin:$PATH"
 
+# Give the iceberg user ownership of the iceberg_rest directory
+RUN chown -R iceberg:iceberg /home/iceberg/iceberg_rest
+
+# Switch to iceberg user
+USER iceberg
+
 # Add the source code
 COPY pyproject.toml poetry.lock poetry.toml ./
 COPY src/ src/
@@ -126,12 +132,6 @@ COPY README.md README.md
 
 # Install the source package
 RUN pip install . --no-deps
-
-# Give the iceberg user ownership of the iceberg_rest directory
-RUN chown -R iceberg:iceberg /home/iceberg/iceberg_rest
-
-# Switch to iceberg user
-USER iceberg
 
 # Serve the app in development mode
 CMD ["uvicorn", "src.iceberg_rest.main:app", "--host",  "0.0.0.0", "--port", "8000", "--reload"]
