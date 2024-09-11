@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends
 from typing import Any, Dict, Optional, Union
 
-from fastapi import Body, Path, Query
+from fastapi import Body, Path, Query, Response, status
 from pydantic import BaseModel, Field, StrictStr
 
 from iceberg_rest.catalog import get_catalog
@@ -501,7 +501,10 @@ def table_exists(
 ) -> None:
     """Check if a table exists within a given namespace. The response does not contain a body."""
     try:
-        catalog.load_table(identifier=(namespace, table))
+        identifier = (namespace, table)
+        catalog.load_table(identifier)
+        return Response(status_code=status.HTTP_204_NO_CONTENT)
+
     except NoSuchTableError:
         raise IcebergHTTPException(
             status_code=404, detail=f"Table does not exist: {(namespace, table)}"
