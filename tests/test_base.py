@@ -516,19 +516,15 @@ def test_commit_table(catalog: Catalog) -> None:
     )
 
     # When
-    response = given_table.catalog._commit_table(  # pylint: disable=W0212
-        CommitTableRequest(
-            identifier=TableIdentifier(
-                namespace=Namespace(given_table.identifier[:-1]),
-                name=given_table.identifier[-1],
+    response = catalog.commit_table(
+        given_table,
+        requirements=[],
+        updates=[
+            AddSchemaUpdate(
+                schema=new_schema, last_column_id=new_schema.highest_field_id
             ),
-            updates=[
-                AddSchemaUpdate(
-                    schema=new_schema, last_column_id=new_schema.highest_field_id
-                ),
-                SetCurrentSchemaUpdate(schema_id=-1),
-            ],
-        )
+            SetCurrentSchemaUpdate(schema_id=-1),
+        ]
     )
 
     # Then
