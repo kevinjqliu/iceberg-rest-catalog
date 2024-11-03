@@ -15,13 +15,15 @@ os.environ["AWS_SECRET_ACCESS_KEY"] = "password"
 os.environ["AWS_REGION"] = "us-east-1"
 
 # Create a Spark session with Iceberg configurations
-# https://repo1.maven.org/maven2/org/apache/iceberg/iceberg-spark-runtime-3.5_2.12/1.5.2/
-iceberg_jar_path = "tests/iceberg-spark-runtime-3.5_2.12-1.5.2.jar"
-# https://repo1.maven.org/maven2/org/apache/iceberg/iceberg-aws-bundle/1.5.0/
-aws_sdk_s3_jar_path = "tests/iceberg-aws-bundle-1.5.0.jar"
 spark = (
     SparkSession.builder.appName("IcebergExample")
-    .config("spark.jars", f"{iceberg_jar_path},{aws_sdk_s3_jar_path}")
+    .config(
+        "spark.jars.packages",
+        (
+            "org.apache.iceberg:iceberg-spark-runtime-3.5_2.12:1.4.3,"
+            "org.apache.iceberg:iceberg-aws-bundle:1.4.3,"
+        ),
+    )
     .config(
         "spark.sql.extensions",
         "org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions",
