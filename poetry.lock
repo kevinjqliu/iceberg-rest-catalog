@@ -1932,7 +1932,7 @@ description = "Apache Iceberg is an open table format for huge analytic datasets
 optional = false
 python-versions = "^3.9, <3.13, !=3.9.7"
 files = []
-develop = false
+develop = true
 
 [package.dependencies]
 cachetools = "^5.5.0"
@@ -3130,4 +3130,4 @@ postgres = ["psycopg2-binary"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9, <3.13, !=3.9.7"
-content-hash = "fbaf7f53ae4c111148ccb3ecdb73a0afc6449e931f81258f350a4c28c4e95ec9"
+content-hash = "379e01692234765d37b173fb019d06e8bd3bcb9f7e75754af8e3efd23693f143"
