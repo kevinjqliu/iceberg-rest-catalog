@@ -15,7 +15,7 @@ def _create_catalog():
     catalog = SqlCatalog(
         settings.CATALOG_NAME,
         **{
-            "uri": settings.CATALOG_JDBC_URI,
+            "uri": settings.CATALOG_URI,
             "warehouse": settings.CATALOG_WAREHOUSE,
             "s3.endpoint": settings.CATALOG_S3_ENDPOINT,
             "s3.access-key-id": settings.AWS_ACCESS_KEY_ID,

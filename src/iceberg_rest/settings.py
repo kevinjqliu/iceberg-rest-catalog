@@ -14,7 +14,7 @@ class Settings(BaseSettings):
     )
 
     # JDBC settings
-    CATALOG_JDBC_URI: str = Field(
+    CATALOG_URI: str = Field(
         default="sqlite:////tmp/warehouse/pyiceberg_catalog.db",
         examples=[
             "postgresql://pguser:password@postgres:5432/iceberg_db",
