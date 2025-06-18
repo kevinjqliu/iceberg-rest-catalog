@@ -47,11 +47,8 @@ from pyiceberg.partitioning import (
 from pyiceberg.schema import Schema
 from pyiceberg.table import (
     AddSchemaUpdate,
-    CommitTableRequest,
-    Namespace,
     SetCurrentSchemaUpdate,
     Table,
-    TableIdentifier,
 )
 from pyiceberg.transforms import IdentityTransform
 from pyiceberg.typedef import EMPTY_DICT, Properties
@@ -523,7 +520,7 @@ def test_commit_table(catalog: Catalog) -> None:
                 schema=new_schema, last_column_id=new_schema.highest_field_id
             ),
             SetCurrentSchemaUpdate(schema_id=-1),
-        ]
+        ],
     )
 
     # Then

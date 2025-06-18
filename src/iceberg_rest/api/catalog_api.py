@@ -455,7 +455,9 @@ def update_table(
             catalog=catalog,
         )
         # (TODO): `commit_table` should just take in the identifier instead of table
-        resp = catalog.commit_table(tbl, commit_table_request.requirements, commit_table_request.updates)
+        resp = catalog.commit_table(
+            tbl, commit_table_request.requirements, commit_table_request.updates
+        )
     except NoSuchTableError:
         raise IcebergHTTPException(
             status_code=404, detail=f"Table does not exist: {(namespace, table)}"

@@ -67,7 +67,7 @@ schema = Schema(
 )
 try:
     catalog.drop_table("default.test_uuid_and_fixed_unpartitioned")
-except:
+except Exception:
     pass
 
 catalog.create_table(
