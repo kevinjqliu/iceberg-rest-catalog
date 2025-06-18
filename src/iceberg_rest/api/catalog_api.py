@@ -41,6 +41,10 @@ from iceberg_rest.models.response import (
 
 from pyiceberg.catalog import Catalog
 
+# Monkey patch, fixed in pyiceberg 0.10.0
+Catalog.identifier_to_tuple = staticmethod(
+    lambda identifier: () if identifier is None else identifier if isinstance(identifier, tuple) else tuple(str(identifier).split("."))
+)
 
 router = APIRouter(dependencies=[Depends(get_catalog)])
 
