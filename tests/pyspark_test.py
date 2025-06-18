@@ -6,7 +6,7 @@ from pyiceberg.schema import Schema
 from pyiceberg.types import FixedType, NestedField, UUIDType
 from pyspark.sql import SparkSession
 
-# run with `python tests/pyspark_test.py`
+# run with `poetry run python tests/pyspark_test.py`
 # CATALOG_CONFIG={ "uri": "sqlite:////tmp/warehouse/pyiceberg_catalog.db", "warehouse": "s3://warehouse/rest/", "s3.endpoint": "http://localhost:9000", "s3.access-key-id": "admin", "s3.secret-access-key": "password"}
 
 # Set environment variables
@@ -53,12 +53,26 @@ catalog = load_catalog(
 
 catalog_name = "rest"
 
+# list namespaces
+spark.sql(
+    f"""
+    SHOW NAMESPACES IN {catalog_name};
+"""
+).show()
+
 # create a namespace with spark sql
 spark.sql(
     f"""
     CREATE DATABASE IF NOT EXISTS {catalog_name}.default;
 """
-)
+).show()
+
+# list tables in namespace
+spark.sql(
+    f"""
+    SHOW TABLES IN {catalog_name}.default;
+"""
+).show()
 
 # create a table with pyiceberg
 schema = Schema(
@@ -84,7 +98,7 @@ spark.sql(
     ('c1b0d8e0-0b0e-4b1e-9b0a-0e0b0d0c0a0b', CAST('asdasasdads12312312312111' AS BINARY)),
     ('923dae77-83d6-47cd-b4b0-d383e64ee57e', CAST('qweeqwwqq1231231231231111' AS BINARY));
     """
-)
+).show()
 
 tbl = catalog.load_table("default.test_uuid_and_fixed_unpartitioned")
 assert tbl.schema() == schema
@@ -107,7 +121,7 @@ UNION ALL SELECT
     3            AS idx,
     1            AS col_numeric
 """
-)
+).show()
 
 # write to table with spark sql
 spark.sql(
@@ -115,4 +129,4 @@ spark.sql(
     INSERT INTO {catalog_name}.default.test_null_nan VALUES
     (4, 999);
     """
-)
+).show()
