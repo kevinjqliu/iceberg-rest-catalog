@@ -10,7 +10,7 @@ services:
         - EXTRAS=postgres
     container_name: iceberg-rest
     environment:
-      - CATALOG_JDBC_URI=postgresql://pguser:password@postgres:5432/iceberg_db
+      - CATALOG_URI=postgresql://pguser:password@postgres:5432/iceberg_db
       - CATALOG_WAREHOUSE=s3://warehouse/rest
       - CATALOG_S3_ENDPOINT=http://minio:9000
       - AWS_ACCESS_KEY_ID=admin

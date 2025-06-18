@@ -41,7 +41,6 @@ from iceberg_rest.models.response import (
 
 from pyiceberg.catalog import Catalog
 
-
 router = APIRouter(dependencies=[Depends(get_catalog)])
 
 
@@ -112,7 +111,7 @@ def list_namespaces(
 ) -> ListNamespacesResponse:
     """List all namespaces at a certain level, optionally starting from a given parent namespace. If table accounting.tax.paid.info exists, using &#39;SELECT NAMESPACE IN accounting&#39; would translate into &#x60;GET /namespaces?parent&#x3D;accounting&#x60; and must return a namespace, [\&quot;accounting\&quot;, \&quot;tax\&quot;] only. Using &#39;SELECT NAMESPACE IN accounting.tax&#39; would translate into &#x60;GET /namespaces?parent&#x3D;accounting%1Ftax&#x60; and must return a namespace, [\&quot;accounting\&quot;, \&quot;tax\&quot;, \&quot;paid\&quot;]. If &#x60;parent&#x60; is not provided, all top-level namespaces should be listed."""
     try:
-        namespaces = catalog.list_namespaces(parent)
+        namespaces = catalog.list_namespaces(parent or ())
     except NoSuchNamespaceError:
         raise IcebergHTTPException(
             status_code=404, detail=f"Namespace does not exist: {parent}"
@@ -456,7 +455,9 @@ def update_table(
             catalog=catalog,
         )
         # (TODO): `commit_table` should just take in the identifier instead of table
-        resp = catalog.commit_table(tbl, commit_table_request.requirements, commit_table_request.updates)
+        resp = catalog.commit_table(
+            tbl, commit_table_request.requirements, commit_table_request.updates
+        )
     except NoSuchTableError:
         raise IcebergHTTPException(
             status_code=404, detail=f"Table does not exist: {(namespace, table)}"

@@ -10,13 +10,13 @@ readme = "README.md"
 packages = [{ include = "iceberg_rest", from = "src" }]
 
 [tool.poetry.dependencies]
-python = "^3.10"
+python = "^3.9, <3.13, !=3.9.7"
 fastapi = "^0.111.0"
 mysqlclient = { version = "^2.2.4", optional = true }
 psycopg2-binary = { version = "^2.9.9", optional = true }
 pyarrow = "^16.1.0"
 pydantic-settings = "^2.3.2"
-pyiceberg = { path = "./vendor/iceberg-python" }
+pyiceberg = "0.9.1"
 s3fs = "^2024.6.0"
 sqlalchemy = "^2.0.30"
 uvicorn = "^0.30.1"

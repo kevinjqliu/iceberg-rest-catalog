@@ -47,11 +47,8 @@ from pyiceberg.partitioning import (
 from pyiceberg.schema import Schema
 from pyiceberg.table import (
     AddSchemaUpdate,
-    CommitTableRequest,
-    Namespace,
     SetCurrentSchemaUpdate,
     Table,
-    TableIdentifier,
 )
 from pyiceberg.transforms import IdentityTransform
 from pyiceberg.typedef import EMPTY_DICT, Properties
@@ -251,7 +248,7 @@ def test_load_table_from_self_identifier(catalog: Catalog) -> None:
     given_table = given_catalog_has_a_table(catalog)
     # When
     intermediate = catalog.load_table(TEST_TABLE_IDENTIFIER)
-    table = catalog.load_table(intermediate.identifier)
+    table = catalog.load_table(intermediate.name())
     # Then
     assert table == given_table
 
@@ -286,10 +283,10 @@ def test_drop_table_from_self_identifier(catalog: Catalog) -> None:
     # Given
     table = given_catalog_has_a_table(catalog)
     # When
-    catalog.drop_table(table.identifier)
+    catalog.drop_table(table.name())
     # Then
     with pytest.raises(NoSuchTableError, match=NO_SUCH_TABLE_ERROR):
-        catalog.load_table(table.identifier)
+        catalog.load_table(table.name())
     with pytest.raises(NoSuchTableError, match=NO_SUCH_TABLE_ERROR):
         catalog.load_table(TEST_TABLE_IDENTIFIER)
 
@@ -321,12 +318,11 @@ def test_rename_table(catalog: Catalog) -> None:
     table = catalog.rename_table(TEST_TABLE_IDENTIFIER, new_table)
 
     # Then
-    # (TODO): get rid of catalog name in identifier
-    assert table.identifier[1:] == Catalog.identifier_to_tuple(new_table)
+    assert table.name() == Catalog.identifier_to_tuple(new_table)
 
     # And
     table = catalog.load_table(new_table)
-    assert table.identifier[1:] == Catalog.identifier_to_tuple(new_table)
+    assert table.name() == Catalog.identifier_to_tuple(new_table)
 
     # And
     assert new_namespace in catalog.list_namespaces()
@@ -347,18 +343,18 @@ def test_rename_table_from_self_identifier(catalog: Catalog) -> None:
     new_table = catalog.rename_table(TEST_TABLE_IDENTIFIER, new_table_name)
 
     # Then
-    assert new_table.identifier[1:] == Catalog.identifier_to_tuple(new_table_name)
+    assert new_table.name() == Catalog.identifier_to_tuple(new_table_name)
 
     # And
-    new_table = catalog.load_table(new_table.identifier)
-    assert new_table.identifier[1:] == Catalog.identifier_to_tuple(new_table_name)
+    new_table = catalog.load_table(new_table.name())
+    assert new_table.name() == Catalog.identifier_to_tuple(new_table_name)
 
     # And
     assert new_namespace in catalog.list_namespaces()
 
     # And
     with pytest.raises(NoSuchTableError, match=NO_SUCH_TABLE_ERROR):
-        catalog.load_table(table.identifier)
+        catalog.load_table(table.name())
     with pytest.raises(NoSuchTableError, match=NO_SUCH_TABLE_ERROR):
         catalog.load_table(TEST_TABLE_IDENTIFIER)
 
@@ -524,7 +520,7 @@ def test_commit_table(catalog: Catalog) -> None:
                 schema=new_schema, last_column_id=new_schema.highest_field_id
             ),
             SetCurrentSchemaUpdate(schema_id=-1),
-        ]
+        ],
     )
 
     # Then

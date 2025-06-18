@@ -2,6 +2,12 @@
 
 Pythonic Iceberg REST Catalog
 
+## Run Locally with Poetry
+```
+poetry install
+poetry run uvicorn src.iceberg_rest.main:app --host 0.0.0.0 --port 8000
+```
+
 ## Build a docker image
 
 **Base -** Supports SQLite backend only.
